@@ -222,9 +222,6 @@ class End(BaseNode):
 
         return None
 
-    def __init__(self, node_id, next_node_id):
-        super(End, self).__init__(node_id, next_node_id)
-
     def evaluate(self, dialog, response=None, last_transition=None):
         transition = DialogTransition(new_state_id=None)
 
@@ -242,9 +239,6 @@ class Begin(BaseNode):
             return Begin(dialog_def['id'], dialog_def['next_id'])
 
         return None
-
-    def __init__(self, node_id, next_node_id):
-        super(Begin, self).__init__(node_id, next_node_id)
 
     def evaluate(self, dialog, response=None, last_transition=None):
         transition = DialogTransition(new_state_id=self.next_node_id)
