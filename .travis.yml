@@ -15,7 +15,7 @@ addons:
     - postgresql-9.5-postgis-2.3
   
 before_install:
-  - export PYTHONPATH=$HOME/builds/audaciouscode/pdk
+  - export PYTHONPATH=$HOME/builds/audaciouscode/dde
   
 install:
   - pip install -r requirements.txt
@@ -35,7 +35,7 @@ script:
   - django-admin.py startproject dde
   - mv ../django_dialog_engine dde
   - cd dde
-  - cp django_dialog_engine/travis_settings.py pdk/settings.py
+  - cp django_dialog_engine/travis_settings.py dde/settings.py
   - python manage.py migrate
   - python manage.py test
   - cp django_dialog_engine/.pylintrc .
