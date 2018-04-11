@@ -1,0 +1,183 @@
+[
+    {
+        "type": "begin",
+        "id": "dialog-start",
+        "next_id": "number-explain"
+    },
+    {
+        "type": "prompt",
+        "id": "read-aloud-rating",
+        "next_id": "rating-branch",
+        "prompt": "How was the Read Aloud Lesson? Please rate it from 1 to 5.",
+        "timeout": 3600,
+        "timeout_node_id": "rating-timeout",
+        "valid_patterns": [
+            "^[12345]$"
+        ],
+        "invalid_response_node_id": "rating-invalid"
+    },
+    {
+        "type": "echo",
+        "id": "rating-invalid",
+        "next_id": "read-aloud-rating",
+        "message": "Please choose a rating from 1 to 5."
+    },
+    {
+        "type": "echo",
+        "id": "rating-timeout",
+        "next_id": "read-aloud-rating",
+        "message": "Just checking in on that Read Aloud Lesson rating..."
+    },
+    {
+        "type": "if",
+        "id": "rating-branch",
+        "all_true": [
+        	{
+        		"key": "read-aloud-rating", 
+        		"condition": "<",
+        		"value": "4"
+        	}
+        ],
+        "next_id": "why-unsuccessful",
+        "false_id": "how-helpful"
+    },
+    {
+        "type": "prompt",
+        "id": "why-unsuccessful",
+        "next_id": "academic-rigor",
+        "prompt": "Why was it unsuccessful?",
+        "timeout": 3600,
+        "timeout_node_id": "why-unsuccessful",
+        "valid_patterns": [
+            ".*"
+        ],
+        "invalid_response_node_id": "why-unsuccessful"
+    },
+    {
+        "type": "if",
+        "id": "academic-rigor",
+        "all_true": [
+        	{
+        		"key": "why-unsuccessful", 
+        		"condition": "contains",
+        		"value": [
+        			"rigor-word-1",
+        			"rigor-word-2",
+        			"rigor-word-3"
+        		]
+        	}
+        ],
+        "next_id": "rigor-suggestion",
+        "false_id": "academic-engagement"
+    },
+    {
+        "type": "echo",
+        "id": "rigor-suggestion",
+        "next_id": "how-helpful",
+        "message": "(Rigor suggestion goes here...)"
+    },
+    {
+        "type": "if",
+        "id": "academic-engagement",
+        "all_true": [
+        	{
+        		"key": "why-unsuccessful", 
+        		"condition": "contains",
+        		"value": [
+        			"engagement-word-1",
+        			"engagement-word-2",
+        			"engagement-word-3"
+        		]
+        	}
+        ],
+        "next_id": "engagement-suggestion",
+        "false_id": "academic-purpose"
+    },
+    {
+        "type": "echo",
+        "id": "engagement-suggestion",
+        "next_id": "how-helpful",
+        "message": "(Engagement suggestion goes here...)"
+    },
+    {
+        "type": "if",
+        "id": "academic-purpose",
+        "all_true": [
+        	{
+        		"key": "why-unsuccessful", 
+        		"condition": "contains",
+        		"value": [
+        			"purpose-word-1",
+        			"purpose-word-2",
+        			"purpose-word-3"
+        		]
+        	}
+        ],
+        "next_id": "purpose-suggestion",
+        "false_id": "how-helpful"
+    },
+    {
+        "type": "echo",
+        "id": "purpose-suggestion",
+        "next_id": "how-helpful",
+        "message": "(Purpose suggestion goes here...)"
+    },
+    {
+        "type": "prompt",
+        "id": "",
+        "next_id": "helpful-reflection",
+        "prompt": "How was it helpful?",
+        "timeout": 3600,
+        "timeout_node_id": "how-helpful",
+        "valid_patterns": [
+            ".*"
+        ],
+        "invalid_response_node_id": "how-helpful"
+    },
+    {
+        "type": "if",
+        "id": "helpful-reflection",
+        "all_true": [
+        	{
+        		"key": "how-helpful", 
+        		"condition": "contains",
+        		"value": [
+        			"reflection-word-1",
+        			"reflection-word-2",
+        			"reflection-word-3"
+        		]
+        	}
+        ],
+        "next_id": "reflection-suggestion",
+        "false_id": "how-different"
+    },
+    {
+        "type": "echo",
+        "id": "reflection-suggestion",
+        "next_id": "how-different",
+        "message": "(Reflection suggestion goes here...)"
+    },
+
+    {
+        "type": "prompt",
+        "id": "how-different",
+        "next_id": "thank-you",
+        "prompt": "Is there a difference?  How do you know?",
+        "timeout": 3600,
+        "timeout_node_id": "how-different",
+        "valid_patterns": [
+            ".*"
+        ],
+        "invalid_response_node_id": "how-different"
+    },
+    {
+        "type": "echo",
+        "id": "thank-you",
+        "next_id": "dialog-end",
+        "message": "Thank you for your feedback."
+    },
+    {
+        "type": "end",
+        "id": "dialog-end"
+    }
+]

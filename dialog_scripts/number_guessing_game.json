@@ -1,0 +1,53 @@
+[
+    {
+        "type": "begin",
+        "id": "dialog-start",
+        "next_id": "number-explain"
+    },
+    {
+        "type": "echo",
+        "id": "number-explain",
+        "next_id": "number-pause",
+        "message": "I am thinking of a number between 1 and 9 (inclusive)."
+    },
+    {
+        "type": "pause",
+        "id": "number-pause",
+        "next_id": "number-prompt",
+        "duration": 10
+    },
+    {
+        "type": "prompt",
+        "id": "number-prompt",
+        "next_id": "success",
+        "prompt": "Your guess?",
+        "timeout": 10,
+        "timeout_node_id": "number-timeout",
+        "valid_patterns": [
+            "^6$"
+        ],
+        "invalid_response_node_id": "number-invalid"
+    },
+    {
+        "type": "echo",
+        "id": "number-timeout",
+        "next_id": "number-prompt",
+        "message": "You took more than 10 seconds. Speed it up!"
+    },
+    {
+        "type": "echo",
+        "id": "number-invalid",
+        "next_id": "number-prompt",
+        "message": "That is not it. Please try again."
+    },
+    {
+        "type": "echo",
+        "id": "success",
+        "next_id": "dialog-end",
+        "message": "Well done! Let's play again one of these days!"
+    },
+    {
+        "type": "end",
+        "id": "dialog-end"
+    }
+]

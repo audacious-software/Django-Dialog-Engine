@@ -1,0 +1,41 @@
+[
+	{
+		"type": "begin",
+		"id": "dialog-start",
+		"next_id": "name-prompt"
+	},
+	{
+		"type": "prompt",
+		"id": "name-prompt",
+		"next_id": "name-finished",
+		"prompt": "What is your name?",
+		"timeout": 10,
+		"timeout_node_id": "name-prompt-timeout",
+		"valid_patterns": [
+			"[a-zA-Z]+"
+		],
+		"invalid_response_node_id": "name-prompt-invalid"
+	},
+	{
+		"type": "echo",
+		"id": "name-prompt-timeout",
+		"next_id": "name-prompt",
+		"message": "You took more than 10 seconds. Please try again."
+	},
+	{
+		"type": "echo",
+		"id": "name-prompt-invalid",
+		"next_id": "name-prompt",
+		"message": "That is not a valid name. Please try again."
+	},
+	{
+		"type": "echo",
+		"id": "name-finished",
+		"next_id": "dialog-end",
+		"message": "Nice to meet you!"
+	},
+	{
+		"type": "end",
+		"id": "dialog-end"
+	}
+]
