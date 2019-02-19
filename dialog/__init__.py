@@ -146,7 +146,7 @@ class Prompt(BaseNode):
                 if re.match(pattern, response) is not None:
                     valid_response = True
 
-            if valid_response:
+            if valid_response is False:
                 if self.invalid_response_node_id is not None:
                     transition = DialogTransition(new_state_id=self.invalid_response_node_id)
 
@@ -157,6 +157,7 @@ class Prompt(BaseNode):
                     return transition
 
                 return None # What to do here?
+
             transition = DialogTransition(new_state_id=self.next_node_id)
 
             transition.metadata['reason'] = 'valid-response'

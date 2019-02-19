@@ -35,7 +35,7 @@ class DialogScript(models.Model):
 
 
 class Dialog(models.Model):
-    script = models.ForeignKey(DialogScript, related_name='dialogs', null=True, on_delete=models.SET_NULL)
+    script = models.ForeignKey(DialogScript, related_name='dialogs', null=True, blank=True, on_delete=models.SET_NULL)
     dialog_snapshot = JSONField(null=True, blank=True)
 
     started = models.DateTimeField()
@@ -70,7 +70,6 @@ class Dialog(models.Model):
         dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata)
 
         if last_transition is not None:
-#            print('GOTO: ' + str(last_transition.state_id))
             dialog_machine.advance_to(last_transition.state_id)
 
         transition = dialog_machine.evaluate(response=response, last_transition=last_transition)
