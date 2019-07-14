@@ -413,7 +413,7 @@ class CustomNode(BaseNode):
             last_transition_date = last_transition.when
             previous_state = last_transition.state_id
 
-        transition_details, exit_actions, next_node_id = eval(self.evaluate_script, { # pylint: disable=eval-used # nosec
+        transition_details, exit_actions, next_node_id = eval(self.evaluate_script, { # nosec # pylint: disable=eval-used
             'definition': self.definition,
             'response': response,
             'last_transition': last_transition_date,
@@ -439,7 +439,7 @@ class CustomNode(BaseNode):
         return None
 
     def actions(self):
-        custom_actions = eval(self.actions_script, {}, {'definition': self.definition}) # pylint: disable=eval-used # nosec
+        custom_actions = eval(self.actions_script, {}, {'definition': self.definition}) # nosec # pylint: disable=eval-used
 
         for action in custom_actions:
             if isinstance(action['type'], basestring) is False:
