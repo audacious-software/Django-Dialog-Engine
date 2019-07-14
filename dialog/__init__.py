@@ -390,5 +390,59 @@ class WhileAction(BaseNode):
         self.test = test
         self.actions = actions
 
-def parse_dialog_definition(definition):  # pylint: disable=unused-argument
-    return []
+class CustomNode(BaseNode):
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'custom':
+            return CustomNode(dialog_def['id'], dialog_def['definition'], dialog_def['evaluate'], dialog_def['actions'])
+
+        return None
+
+    def __init__(self, node_id, definition, evaluate_script, actions_script): # pylint: disable=too-many-arguments
+        super(CustomNode, self).__init__(node_id, None)
+
+        self.definition = definition
+        self.evaluate_script = evaluate_script
+        self.actions_script = actions_script
+
+    def evaluate(self, dialog, response=None, last_transition=None):
+        last_transition_date = None
+        previous_state = None
+
+        if last_transition is not None:
+            last_transition_date = last_transition.when
+            previous_state = last_transition.state_id
+
+        transition_details, exit_actions, next_node_id = eval(self.evaluate_script, { # pylint: disable=eval-used
+            'definition': self.definition,
+            'response': response,
+            'last_transition': last_transition_date,
+            'previous_state': previous_state
+        })
+
+        if transition_details is not None:
+            transition = DialogTransition(new_state_id=next_node_id)
+
+            transition.metadata = transition_details
+
+            if exit_actions is not None:
+                for action in exit_actions:
+                    if isinstance(action['type'], basestring) is False:
+                        raise Exception(str(action) + ' is not a valid action. Verify that the "type" key is present and is a string.')
+
+                transition.metadata['exit_actions'] = exit_actions
+            else:
+                transition.metadata['exit_actions'] = []
+
+            return transition
+
+        return None
+
+    def actions(self):
+        custom_actions = eval(self.actions_script, {}, {'definition': self.definition}) # pylint: disable=eval-used
+
+        for action in custom_actions:
+            if isinstance(action['type'], basestring) is False:
+                raise Exception(str(action) + ' is not a valid action. Verify that the "type" key is present and is a string.')
+
+        return custom_actions
