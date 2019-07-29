@@ -405,7 +405,7 @@ class CustomNode(BaseNode):
         self.evaluate_script = evaluate_script
         self.actions_script = actions_script
 
-    def evaluate(self, dialog, response=None, last_transition=None):
+    def evaluate(self, dialog, response=None, last_transition=None):  # nosec
         last_transition_date = None
         previous_state = None
 
@@ -429,7 +429,7 @@ class CustomNode(BaseNode):
 
         code = compile(self.evaluate_script, '<string>', 'exec')
 
-        eval(code, {}, local_env) # pylint: disable=eval-used # nosec
+        eval(code, {}, local_env) # pylint: disable=eval-used
 
         if result['details'] is not None:
             transition = DialogTransition(new_state_id=result['next_id'])
@@ -449,12 +449,12 @@ class CustomNode(BaseNode):
 
         return None
 
-    def actions(self):
+    def actions(self): # nosec
         code = compile(self.actions_script, '<string>', 'exec')
 
         custom_actions = []
 
-        eval(code, {}, {'definition': self.definition, 'actions': custom_actions})  # pylint: disable=eval-used # nosec
+        eval(code, {}, {'definition': self.definition, 'actions': custom_actions}) # pylint: disable=eval-used
 
         for action in custom_actions:
             if isinstance(action['type'], basestring) is False:
