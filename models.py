@@ -35,6 +35,8 @@ class DialogScript(models.Model):
 
 
 class Dialog(models.Model):
+    key = models.CharField(null=True, blank=True, max_length=128)
+
     script = models.ForeignKey(DialogScript, related_name='dialogs', null=True, blank=True, on_delete=models.SET_NULL)
     dialog_snapshot = JSONField(null=True, blank=True)
 
@@ -96,6 +98,8 @@ class Dialog(models.Model):
 
                 actions = new_transition.actions()
 
+
+
             return actions
 
         return []
@@ -109,6 +113,9 @@ class DialogStateTransition(models.Model):
     prior_state_id = models.CharField(max_length=128, null=True, blank=True)
 
     metadata = JSONField(default=dict)
+
+    def __unicode__(self):
+        return str(self.prior_state_id) + ' -> ' + str(self.state_id)
 
     def actions(self):
         if 'actions' in self.metadata:

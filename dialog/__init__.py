@@ -413,24 +413,35 @@ class CustomNode(BaseNode):
             last_transition_date = last_transition.when
             previous_state = last_transition.state_id
 
-        transition_details, exit_actions, next_node_id = eval(self.evaluate_script, { # nosec # pylint: disable=eval-used
+        result = {
+            'details': {},
+            'actions': [],
+            'next_id': None
+        }
+
+        local_env = {
             'definition': self.definition,
             'response': response,
             'last_transition': last_transition_date,
-            'previous_state': previous_state
-        })
+            'previous_state': previous_state,
+            'result': result
+        }
 
-        if transition_details is not None:
-            transition = DialogTransition(new_state_id=next_node_id)
+        code = compile(self.evaluate_script, '<string>', 'exec')
 
-            transition.metadata = transition_details
+        eval(code, {}, local_env) # pylint: disable=eval-used # nosec
 
-            if exit_actions is not None:
-                for action in exit_actions:
+        if result['details'] is not None:
+            transition = DialogTransition(new_state_id=result['next_id'])
+
+            transition.metadata = result['details']
+
+            if result['actions'] is not None:
+                for action in result['actions']:
                     if isinstance(action['type'], basestring) is False:
                         raise Exception(str(action) + ' is not a valid action. Verify that the "type" key is present and is a string.')
 
-                transition.metadata['exit_actions'] = exit_actions
+                transition.metadata['exit_actions'] = result['actions']
             else:
                 transition.metadata['exit_actions'] = []
 
@@ -439,7 +450,11 @@ class CustomNode(BaseNode):
         return None
 
     def actions(self):
-        custom_actions = eval(self.actions_script, {}, {'definition': self.definition}) # nosec # pylint: disable=eval-used
+        code = compile(self.actions_script, '<string>', 'exec')
+
+        custom_actions = []
+
+        eval(code, {}, {'definition': self.definition, 'actions': custom_actions})  # pylint: disable=eval-used # nosec
 
         for action in custom_actions:
             if isinstance(action['type'], basestring) is False:
