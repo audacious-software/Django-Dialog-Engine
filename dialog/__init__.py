@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, eval-used
 
 import json
 import re
@@ -38,11 +38,14 @@ class DialogMachine(object):
     def advance_to(self, node_id):
         self.current_node = self.all_nodes[node_id]
 
-    def evaluate(self, response=None, last_transition=None):
+    def evaluate(self, response=None, last_transition=None, extras=None):
+        if extras is None:
+            extras = {}
+
         if self.current_node is None:
             return None
 
-        transition = self.current_node.evaluate(self, response, last_transition)
+        transition = self.current_node.evaluate(self, response, last_transition, extras)
 
         if transition is not None:
             if transition.new_state_id in self.all_nodes:
@@ -75,7 +78,7 @@ class BaseNode(object):
         self.node_id = node_id
         self.next_node_id = next_node_id
 
-    def evaluate(self, dialog, response=None, last_transition=None): # pylint: disable=unused-argument
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None): # pylint: disable=unused-argument
         raise DialogError('Unimplemented method: evaluate. Class: ' + self.__class__.__name__)
 
     def actions(self):
@@ -122,7 +125,10 @@ class Prompt(BaseNode):
         else:
             self.valid_patterns = valid_patterns
 
-    def evaluate(self, dialog, response=None, last_transition=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+        if extras is None:
+            extras = {}
+
         if response is None and last_transition is not None and self.timeout_node_id is not None:
             now = timezone.now()
 
@@ -202,7 +208,10 @@ class Echo(BaseNode):
 
         self.message = message
 
-    def evaluate(self, dialog, response=None, last_transition=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+        if extras is None:
+            extras = {}
+
         transition = DialogTransition(new_state_id=self.next_node_id)
 
         transition.metadata['reason'] = 'echo-continue'
@@ -223,7 +232,10 @@ class End(BaseNode):
 
         return None
 
-    def evaluate(self, dialog, response=None, last_transition=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+        if extras is None:
+            extras = {}
+
         transition = DialogTransition(new_state_id=None)
 
         transition.metadata['reason'] = 'end-dialog'
@@ -241,7 +253,10 @@ class Begin(BaseNode):
 
         return None
 
-    def evaluate(self, dialog, response=None, last_transition=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+        if extras is None:
+            extras = {}
+
         transition = DialogTransition(new_state_id=self.next_node_id)
 
         transition.metadata['reason'] = 'begin-dialog'
@@ -265,7 +280,10 @@ class Pause(BaseNode):
 
         self.duration = duration
 
-    def evaluate(self, dialog, response=None, last_transition=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+        if extras is None:
+            extras = {}
+
         now = timezone.now()
 
         if (now - last_transition.when).total_seconds() > self.duration:
@@ -298,7 +316,10 @@ class If(BaseNode):
         self.all_true = all_true
         self.false_id = false_id
 
-    def evaluate(self, dialog, response=None, last_transition=None): # pylint: disable=too-many-branches
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None): # pylint: disable=too-many-branches
+        if extras is None:
+            extras = {}
+
         is_all_true = True
 
         for condition in self.all_true:
@@ -356,7 +377,10 @@ class LoopAction(BaseNode):
         self.iterations = iterations
         self.loop_node_id = loop_node_id
 
-    def evaluate(self, dialog, response=None, last_transition=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+        if extras is None:
+            extras = {}
+
         loop_count = 0
 
         if last_transition is not None:
@@ -405,7 +429,10 @@ class CustomNode(BaseNode):
         self.evaluate_script = evaluate_script
         self.actions_script = actions_script
 
-    def evaluate(self, dialog, response=None, last_transition=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+        if extras is None:
+            extras = {}
+
         last_transition_date = None
         previous_state = None
 
@@ -424,12 +451,13 @@ class CustomNode(BaseNode):
             'response': response,
             'last_transition': last_transition_date,
             'previous_state': previous_state,
-            'result': result
+            'result': result,
+            'extras': extras
         }
 
         code = compile(self.evaluate_script, '<string>', 'exec')
 
-        eval(code, {}, local_env) # pylint: disable=eval-used # nosec
+        eval(code, {}, local_env) # nosec
 
         if result['details'] is not None:
             transition = DialogTransition(new_state_id=result['next_id'])
@@ -449,12 +477,12 @@ class CustomNode(BaseNode):
 
         return None
 
-    def actions(self):
+    def actions(self): # pylint: disable=eval-used
         code = compile(self.actions_script, '<string>', 'exec')
 
         custom_actions = []
 
-        eval(code, {}, {'definition': self.definition, 'actions': custom_actions})  # pylint: disable=eval-used # nosec
+        eval(code, {}, {'definition': self.definition, 'actions': custom_actions}) # nosec
 
         for action in custom_actions:
             if isinstance(action['type'], basestring) is False:

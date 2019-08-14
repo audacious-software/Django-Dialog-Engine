@@ -59,7 +59,10 @@ class Dialog(models.Model):
     def is_active(self):
         return self.finished is None
 
-    def process(self, response=None):
+    def process(self, response=None, extras=None):
+        if extras is None:
+            extras = {}
+
         if self.finished is not None:
             return []
 
@@ -74,7 +77,7 @@ class Dialog(models.Model):
         if last_transition is not None:
             dialog_machine.advance_to(last_transition.state_id)
 
-        transition = dialog_machine.evaluate(response=response, last_transition=last_transition)
+        transition = dialog_machine.evaluate(response=response, last_transition=last_transition, extras=extras)
 
         if transition is None:
             pass # Nothing to do
