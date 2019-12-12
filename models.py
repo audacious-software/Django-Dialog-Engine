@@ -3,9 +3,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import json
+
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
+from django.utils.html import mark_safe
 
 from .dialog import DialogMachine
 
@@ -33,6 +36,12 @@ class DialogScript(models.Model):
 
         return False
 
+    def definition_json(self):
+        return mark_safe(json.dumps(self.definition))
+
+    def __unicode__(self):
+        return self.name
+
 
 class Dialog(models.Model):
     key = models.CharField(null=True, blank=True, max_length=128)
@@ -46,6 +55,9 @@ class Dialog(models.Model):
     finish_reason = models.CharField(max_length=128, choices=FINISH_REASONS, default='not_finished')
 
     metadata = JSONField(default=dict)
+
+    def __unicode__(self):
+        return str(self.script)
 
     def is_valid(self):
         if self.script is None:
@@ -81,7 +93,7 @@ class Dialog(models.Model):
 
         if transition is None:
             pass # Nothing to do
-        elif last_transition is None or last_transition.state_id != transition.new_state_id:
+        elif last_transition is None or last_transition.state_id != transition.new_state_id or transition.refresh is True:
             actions = []
 
             if transition.new_state_id is None:
@@ -100,8 +112,6 @@ class Dialog(models.Model):
                 new_transition.save()
 
                 actions = new_transition.actions()
-
-
 
             return actions
 

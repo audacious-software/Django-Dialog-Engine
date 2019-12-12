@@ -1,8 +1,10 @@
 # pylint: disable=line-too-long
 
+import importlib
 import json
 import re
 
+from django.conf import settings
 from django.utils import timezone
 
 
@@ -22,6 +24,14 @@ class DialogMachine(object):
 
         for node_def in definition:
             node = None
+
+            for app in settings.INSTALLED_APPS:
+                try:
+                    importlib.import_module(app + '.dialog_api')
+                except ImportError:
+                    pass
+                except AttributeError:
+                    pass
 
             for cls in BaseNode.__subclasses__():
                 if node is None:
@@ -66,6 +76,8 @@ class DialogMachine(object):
 class DialogTransition(object): # pylint: disable=too-few-public-methods
     def __init__(self, new_state_id, metadata=None):
         self.new_state_id = new_state_id
+
+        self.refresh = False
 
         if metadata is None:
             metadata = {}
@@ -489,3 +501,80 @@ class CustomNode(BaseNode):
                 raise Exception(str(action) + ' is not a valid action. Verify that the "type" key is present and is a string.')
 
         return custom_actions
+
+class BranchingPrompt(BaseNode):
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'branch-prompt':
+            prompt_node = BranchingPrompt(dialog_def['id'], dialog_def['actions'], dialog_def['prompt'])
+
+            if 'no_match' in dialog_def:
+                prompt_node.invalid_response_node_id = dialog_def['no_match']
+
+            return prompt_node
+
+        return None
+
+    def __init__(self, node_id, actions, prompt, invalid_response_node_id=None): # pylint: disable=too-many-arguments
+        super(BranchingPrompt, self).__init__(node_id, node_id)
+
+        self.prompt = prompt
+
+        self.invalid_response_node_id = invalid_response_node_id
+
+        if actions is None:
+            self.pattern_actions = []
+        else:
+            self.pattern_actions = actions
+
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+        if extras is None:
+            extras = {}
+
+        if response is not None:
+            matched_action = None
+
+            for action in self.pattern_actions:
+                if re.match(action['pattern'], response) is not None:
+                    matched_action = action
+
+            if matched_action is None:
+                if self.invalid_response_node_id is not None:
+                    transition = DialogTransition(new_state_id=self.invalid_response_node_id)
+
+                    transition.metadata['reason'] = 'invalid-response'
+                    transition.metadata['response'] = response
+                    transition.metadata['actions'] = self.pattern_actions
+
+                    transition.refresh = True
+
+                    return transition
+
+                return None # What to do here?
+
+            transition = DialogTransition(new_state_id=matched_action['action'])
+
+            transition.metadata['reason'] = 'valid-response'
+            transition.metadata['response'] = response
+            transition.metadata['actions'] = self.pattern_actions
+            transition.metadata['exit_actions'] = [{
+                'type': 'store-value',
+                'key': self.node_id,
+                'value': response
+            }]
+
+            return transition
+        else:
+            transition = DialogTransition(new_state_id=self.node_id)
+
+            transition.metadata['reason'] = 'prompt-init'
+
+            return transition
+
+        return None
+
+    def actions(self):
+        return[{
+            'type': 'echo',
+            'message': self.prompt
+        }]
