@@ -46,7 +46,10 @@ class DialogMachine(object):
                 self.current_node = node
 
     def advance_to(self, node_id):
-        self.current_node = self.all_nodes[node_id]
+        try:
+            self.current_node = self.all_nodes[node_id]
+        except KeyError:
+            pass # Cannot continue - stay in same place.
 
     def evaluate(self, response=None, last_transition=None, extras=None):
         if extras is None:
