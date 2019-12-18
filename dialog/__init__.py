@@ -25,6 +25,8 @@ class DialogMachine(object):
         for node_def in definition:
             node = None
 
+
+
             for app in settings.INSTALLED_APPS:
                 try:
                     importlib.import_module(app + '.dialog_api')
@@ -214,6 +216,9 @@ class Echo(BaseNode):
     @staticmethod
     def parse(dialog_def):
         if dialog_def['type'] == 'echo':
+            if ('next_id' in dialog_def) is False:
+                raise DialogError('next_id missing in: ' + json.dumps(dialog_def, indent=2))
+
             return Echo(dialog_def['id'], dialog_def['next_id'], dialog_def['message'])
 
         return None
