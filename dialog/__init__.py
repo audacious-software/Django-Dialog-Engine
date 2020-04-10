@@ -25,8 +25,6 @@ class DialogMachine(object):
         for node_def in definition:
             node = None
 
-
-
             for app in settings.INSTALLED_APPS:
                 try:
                     importlib.import_module(app + '.dialog_api')
@@ -479,7 +477,7 @@ class CustomNode(BaseNode):
 
         eval(code, {}, local_env) # pylint: disable=eval-used
 
-        if result['details'] is not None:
+        if result['details'] is not None and result['next_id'] is not None:
             transition = DialogTransition(new_state_id=result['next_id'])
 
             transition.metadata = result['details']
