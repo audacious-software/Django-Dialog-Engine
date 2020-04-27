@@ -87,7 +87,6 @@ class DialogTransition(object): # pylint: disable=too-few-public-methods
 
         self.metadata = metadata
 
-
 class BaseNode(object):
     def __init__(self, node_id, next_node_id=None):
         self.node_id = node_id
@@ -102,7 +101,6 @@ class BaseNode(object):
     @staticmethod
     def parse(dialog_def): # pylint: disable=unused-argument
         return None
-
 
 class Prompt(BaseNode):
     @staticmethod
@@ -209,7 +207,6 @@ class Prompt(BaseNode):
             'timeout': self.timeout
         }]
 
-
 class Echo(BaseNode):
     @staticmethod
     def parse(dialog_def):
@@ -283,7 +280,6 @@ class Begin(BaseNode):
 
     def actions(self):
         return []
-
 
 class Pause(BaseNode):
     @staticmethod
@@ -387,7 +383,6 @@ class If(BaseNode):
     def actions(self):
         return []
 
-
 class LoopAction(BaseNode):
     def __init__(self, node_id, next_node_id, iterations, loop_node_id):
         super(LoopAction, self).__init__(node_id, next_node_id)
@@ -423,7 +418,6 @@ class LoopAction(BaseNode):
 
     def actions(self):
         return[]
-
 
 class WhileAction(BaseNode):
     def __init__(self, action_id, action_type, test, actions):
