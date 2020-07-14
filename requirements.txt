@@ -8,7 +8,7 @@ cffi==1.14.0
 chardet==3.0.4
 configparser==4.0.2
 cryptography==2.8
-Django==1.11.28
+Django==1.11.29
 enum34==1.1.6
 futures==3.3.0
 gitdb2==2.0.6
