@@ -57,7 +57,10 @@ class Dialog(models.Model):
     metadata = JSONField(default=dict)
 
     def __unicode__(self):
-        return str(self.script)
+        if self.script is not None:
+            return str(self.script)
+
+        return 'dialog-' + str(self.pk)
 
     def is_valid(self):
         if self.script is None:
@@ -116,6 +119,21 @@ class Dialog(models.Model):
             return actions
 
         return []
+
+    def advance_to(self, state_id):
+        last_transition = self.transitions.order_by('-when').first()
+
+        new_transition = DialogStateTransition(dialog=self)
+        new_transition.when = timezone.now()
+        new_transition.state_id = state_id
+
+        if last_transition is not None:
+            new_transition.prior_state_id = last_transition.state_id
+            new_transition.metadata = last_transition.metadata
+
+        new_transition.save()
+
+        return new_transition.actions()
 
 
 class DialogStateTransition(models.Model):
