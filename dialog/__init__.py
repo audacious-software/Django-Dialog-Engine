@@ -2,18 +2,18 @@
 
 from __future__ import print_function
 
-from builtins import str
-from builtins import object
+from builtins import str # pylint: disable=redefined-builtin
+from builtins import object # pylint: disable=redefined-builtin
 
 import importlib
 import json
 import re
 
-from past.builtins import basestring
-
 from django.conf import settings
 from django.utils import timezone
 from django.utils.encoding import smart_str, smart_unicode
+
+from past.builtins import basestring # pylint: disable=redefined-builtin
 
 class DialogError(Exception):
     pass
@@ -475,7 +475,7 @@ class CustomNode(BaseNode):
         }
 
         code = compile(smart_str(self.evaluate_script), '<string>', 'exec')
-        
+
         print('CODE: ' + smart_str(self.evaluate_script))
 
         eval(code, {}, local_env) # pylint: disable=eval-used

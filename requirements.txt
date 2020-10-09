@@ -10,6 +10,7 @@ configparser==4.0.2
 cryptography==2.8
 Django==1.11.29
 enum34==1.1.6
+future==0.18.2
 futures==3.3.0
 gitdb2==2.0.6
 GitPython==2.1.15
