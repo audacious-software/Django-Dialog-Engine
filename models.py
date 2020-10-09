@@ -1,7 +1,9 @@
 # pylint: disable=line-too-long, no-member
-
 # -*- coding: utf-8 -*-
+
 from __future__ import unicode_literals
+
+from builtins import str
 
 import json
 
@@ -28,7 +30,7 @@ class DialogScript(models.Model):
     definition = JSONField(null=True, blank=True)
 
     def is_valid(self):
-        if isinstance(self.definition, (list,)) is False:
+        if isinstance(self.definition, list) is False:
             return False
 
         if self.definition:

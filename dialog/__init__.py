@@ -1,8 +1,15 @@
 # pylint: disable=line-too-long
 
+from __future__ import print_function
+
+from builtins import str
+from builtins import object
+
 import importlib
 import json
 import re
+
+from past.builtins import basestring
 
 from django.conf import settings
 from django.utils import timezone
@@ -42,7 +49,7 @@ class DialogMachine(object):
 
             self.all_nodes[node.node_id] = node
 
-            if self.current_node is None and isinstance(node, (Begin,)):
+            if self.current_node is None and isinstance(node, Begin):
                 self.current_node = node
 
     def advance_to(self, node_id):

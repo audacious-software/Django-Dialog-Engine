@@ -1,15 +1,23 @@
 # pylint: disable=no-member, line-too-long
-
 # -*- coding: utf-8 -*-
+
+from __future__ import print_function
+
+from builtins import str
+from builtins import input
 
 import json
 import signal
 import time
 
+from future import standard_library
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from ...models import DialogScript, Dialog
+
+standard_library.install_aliases()
 
 class Command(BaseCommand):
     help = 'Creates a new dialog from a provided JSON definition and executes it via the command line interface'
@@ -53,24 +61,24 @@ class Command(BaseCommand):
                 if action['type'] == 'wait-for-input':
                     signal.alarm(action['timeout'])
 
-                    print 'ENTER INPUT:'
+                    print('ENTER INPUT:')
 
                     try:
-                        input_str = raw_input()
+                        input_str = input()
                     except: # pylint: disable=bare-except
                         break
 
                     signal.alarm(0)
                 elif action['type'] == 'echo':
-                    print 'ECHO: ' + action['message']
+                    print('ECHO: ' + action['message'])
                 elif action['type'] == 'pause':
-                    print 'PAUSE: ' + str(action['duration'])
+                    print('PAUSE: ' + str(action['duration']))
                     time.sleep(action['duration'])
                 elif action['type'] == 'store-value':
-                    print 'STORE: ' + str(action['key']) + ' = ' + str(action['value'])
+                    print('STORE: ' + str(action['key']) + ' = ' + str(action['value']))
                 else:
                     raise Exception('Unknown action: ' + json.dumps(action))
 
-            print '    PROCESS: ' + str(input_str)
+            print('    PROCESS: ' + str(input_str))
 
             actions = dialog.process(input_str)
