@@ -6,7 +6,7 @@ import re
 
 from django.conf import settings
 from django.utils import timezone
-
+from django.utils.encoding import smart_str, smart_unicode
 
 class DialogError(Exception):
     pass
@@ -460,14 +460,16 @@ class CustomNode(BaseNode):
 
         local_env = {
             'definition': self.definition,
-            'response': response,
+            'response': smart_str(response),
             'last_transition': last_transition_date,
             'previous_state': previous_state,
             'result': result,
             'extras': extras
         }
 
-        code = compile(self.evaluate_script, '<string>', 'exec')
+        code = compile(smart_str(self.evaluate_script), '<string>', 'exec')
+        
+        print('CODE: ' + smart_str(self.evaluate_script))
 
         eval(code, {}, local_env) # pylint: disable=eval-used
 
