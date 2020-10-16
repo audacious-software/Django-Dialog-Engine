@@ -11,7 +11,7 @@ import re
 
 from django.conf import settings
 from django.utils import timezone
-from django.utils.encoding import smart_str, smart_unicode
+from django.utils.encoding import smart_str
 
 from past.builtins import basestring # pylint: disable=redefined-builtin
 
