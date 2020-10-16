@@ -63,7 +63,7 @@ WSGI_APPLICATION = 'pdk.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE':   'django.contrib.gis.db.backends.postgis',
+        'ENGINE':   'django.db.backends.postgresql',
         'NAME':     'travisci',
         'USER':     'postgres',
         'PASSWORD': '',
@@ -73,7 +73,7 @@ DATABASES = {
 }
 
 if 'test' in sys.argv or 'test_coverage' in sys.argv: #Covers regular testing and django-coverage
-    DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.spatialite'
+    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
 #     SPATIALITE_LIBRARY_PATH = 'mod_spatialite'
 
 # Internationalization
