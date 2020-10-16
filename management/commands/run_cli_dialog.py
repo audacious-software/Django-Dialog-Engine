@@ -10,12 +10,12 @@ import json
 import signal
 import time
 
+from future import standard_library
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from ...models import DialogScript, Dialog
-
-from future import standard_library
 
 standard_library.install_aliases()
 
