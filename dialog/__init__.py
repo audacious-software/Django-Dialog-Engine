@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, useless-object-inheritance, super-with-arguments
 
 from __future__ import print_function
 
@@ -196,14 +196,12 @@ class Prompt(BaseNode):
             }]
 
             return transition
-        else:
-            transition = DialogTransition(new_state_id=self.node_id)
 
-            transition.metadata['reason'] = 'prompt-init'
+        transition = DialogTransition(new_state_id=self.node_id)
 
-            return transition
+        transition.metadata['reason'] = 'prompt-init'
 
-        return None
+        return transition
 
     def actions(self):
         return[{
@@ -573,14 +571,12 @@ class BranchingPrompt(BaseNode):
             }]
 
             return transition
-        else:
-            transition = DialogTransition(new_state_id=self.node_id)
 
-            transition.metadata['reason'] = 'prompt-init'
+        transition = DialogTransition(new_state_id=self.node_id)
 
-            return transition
+        transition.metadata['reason'] = 'prompt-init'
 
-        return None
+        return transition
 
     def actions(self):
         return[{
