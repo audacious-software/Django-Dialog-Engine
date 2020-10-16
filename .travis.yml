@@ -1,11 +1,9 @@
-dist: trusty
-
-env:
-
+dist: bionic
 language: python
 
 python:
   - 2.7
+  - 3.5
 
 addons:
   postgresql: 9.5
