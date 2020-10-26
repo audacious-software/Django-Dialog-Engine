@@ -1,19 +1,33 @@
 # pylint: disable=line-too-long, useless-object-inheritance, super-with-arguments
 
-from __future__ import print_function
-
 from builtins import str # pylint: disable=redefined-builtin
 from builtins import object # pylint: disable=redefined-builtin
 
 import importlib
 import json
+import logging
 import re
+import sys
 
 from django.conf import settings
 from django.utils import timezone
 from django.utils.encoding import smart_str
 
 from past.builtins import basestring # pylint: disable=redefined-builtin
+
+def fetch_default_logger():
+    logger = logging.getLogger('django-dialog-engine')
+    logger.setLevel(logging.DEBUG)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+
+    return logger
+
 
 class DialogError(Exception):
     pass
@@ -58,14 +72,17 @@ class DialogMachine(object):
         except KeyError:
             pass # Cannot continue - stay in same place.
 
-    def evaluate(self, response=None, last_transition=None, extras=None):
+    def evaluate(self, response=None, last_transition=None, extras=None, logger=None):
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
 
         if self.current_node is None:
             return None
 
-        transition = self.current_node.evaluate(self, response, last_transition, extras)
+        transition = self.current_node.evaluate(self, response, last_transition, extras, logger)
 
         if transition is not None:
             if transition.new_state_id in self.all_nodes:
@@ -99,7 +116,7 @@ class BaseNode(object):
         self.node_id = node_id
         self.next_node_id = next_node_id
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None): # pylint: disable=unused-argument
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=unused-argument, too-many-arguments
         raise DialogError('Unimplemented method: evaluate. Class: ' + self.__class__.__name__)
 
     def actions(self):
@@ -145,9 +162,12 @@ class Prompt(BaseNode):
         else:
             self.valid_patterns = valid_patterns
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
 
         if response is None and last_transition is not None and self.timeout_node_id is not None:
             now = timezone.now()
@@ -228,9 +248,12 @@ class Echo(BaseNode):
 
         self.message = message
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
 
         transition = DialogTransition(new_state_id=self.next_node_id)
 
@@ -252,9 +275,12 @@ class End(BaseNode):
 
         return None
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
 
         transition = DialogTransition(new_state_id=None)
 
@@ -273,9 +299,12 @@ class Begin(BaseNode):
 
         return None
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
 
         transition = DialogTransition(new_state_id=self.next_node_id)
 
@@ -299,9 +328,12 @@ class Pause(BaseNode):
 
         self.duration = duration
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
 
         now = timezone.now()
 
@@ -335,9 +367,12 @@ class If(BaseNode):
         self.all_true = all_true
         self.false_id = false_id
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None): # pylint: disable=too-many-branches
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-branches, too-many-arguments
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
 
         is_all_true = True
 
@@ -395,9 +430,12 @@ class LoopAction(BaseNode):
         self.iterations = iterations
         self.loop_node_id = loop_node_id
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
 
         loop_count = 0
 
@@ -446,9 +484,12 @@ class CustomNode(BaseNode):
         self.evaluate_script = evaluate_script
         self.actions_script = actions_script
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None): # nosec
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
 
         last_transition_date = None
         previous_state = None
@@ -469,14 +510,13 @@ class CustomNode(BaseNode):
             'last_transition': last_transition_date,
             'previous_state': previous_state,
             'result': result,
-            'extras': extras
+            'extras': extras,
+            'logger': logger
         }
 
         code = compile(smart_str(self.evaluate_script), '<string>', 'exec')
 
-        print('CODE: ' + smart_str(self.evaluate_script))
-
-        eval(code, {}, local_env) # pylint: disable=eval-used
+        eval(code, {}, local_env) # nosec # pylint: disable=eval-used
 
         if result['details'] is not None and result['next_id'] is not None:
             transition = DialogTransition(new_state_id=result['next_id'])
@@ -534,9 +574,12 @@ class BranchingPrompt(BaseNode):
         else:
             self.pattern_actions = actions
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None):
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
 
         if response is not None:
             matched_action = None

@@ -7,12 +7,13 @@ from builtins import str # pylint: disable=redefined-builtin
 
 import json
 
+from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
 from django.utils.html import mark_safe
 
-from .dialog import DialogMachine
+from .dialog import DialogMachine, fetch_default_logger
 
 FINISH_REASONS = (
     ('not_finished', 'Not Finished'),
@@ -94,7 +95,14 @@ class Dialog(models.Model):
         if last_transition is not None:
             dialog_machine.advance_to(last_transition.state_id)
 
-        transition = dialog_machine.evaluate(response=response, last_transition=last_transition, extras=extras)
+        logger = fetch_default_logger()
+
+        try:
+            logger = settings.fetch_default_logger()
+        except AttributeError:
+            pass
+
+        transition = dialog_machine.evaluate(response=response, last_transition=last_transition, extras=extras, logger=logger)
 
         if transition is None:
             pass # Nothing to do
