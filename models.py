@@ -98,7 +98,7 @@ class Dialog(models.Model):
         logger = fetch_default_logger()
 
         try:
-            logger = settings.fetch_default_logger()
+            logger = settings.FETCH_LOGGER()
         except AttributeError:
             pass
 
