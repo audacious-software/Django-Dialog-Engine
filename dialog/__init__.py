@@ -504,9 +504,12 @@ class CustomNode(BaseNode):
             'next_id': None
         }
 
+        if response is not None:
+            response = smart_str(response)
+
         local_env = {
             'definition': self.definition,
-            'response': smart_str(response),
+            'response': response,
             'last_transition': last_transition_date,
             'previous_state': previous_state,
             'result': result,
