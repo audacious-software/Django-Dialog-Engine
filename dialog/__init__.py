@@ -561,11 +561,18 @@ class BranchingPrompt(BaseNode):
             if 'no_match' in dialog_def:
                 prompt_node.invalid_response_node_id = dialog_def['no_match']
 
+            if 'timeout' in dialog_def:
+                prompt_node.timeout = dialog_def['timeout']
+
+            if 'timeout_node_id' in dialog_def:
+                prompt_node.timeout_node_id = dialog_def['timeout_node_id']
+
+
             return prompt_node
 
         return None
 
-    def __init__(self, node_id, actions, prompt, invalid_response_node_id=None): # pylint: disable=too-many-arguments
+    def __init__(self, node_id, actions, prompt, invalid_response_node_id=None, timeout=300, timeout_node_id=None): # pylint: disable=too-many-arguments
         super(BranchingPrompt, self).__init__(node_id, node_id)
 
         self.prompt = prompt
@@ -577,6 +584,11 @@ class BranchingPrompt(BaseNode):
         else:
             self.pattern_actions = actions
 
+        self.timeout = timeout
+        self.timeout_node_id = timeout_node_id
+
+
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
@@ -584,7 +596,7 @@ class BranchingPrompt(BaseNode):
         if logger is None:
             logger = fetch_default_logger()
 
-        if response is not None:
+        if response is not None: # pylint: disable=no-else-return
             matched_action = None
 
             for action in self.pattern_actions:
@@ -617,6 +629,16 @@ class BranchingPrompt(BaseNode):
             }]
 
             return transition
+        elif last_transition is not None and self.timeout_node_id is not None:
+            now = timezone.now()
+
+            if (now - last_transition.when).total_seconds() > self.timeout:
+                transition = DialogTransition(new_state_id=self.timeout_node_id)
+
+                transition.metadata['reason'] = 'timeout'
+                transition.metadata['timeout_duration'] = self.timeout
+
+                return transition
 
         transition = DialogTransition(new_state_id=self.node_id)
 
