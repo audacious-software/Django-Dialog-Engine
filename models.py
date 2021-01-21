@@ -11,7 +11,9 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import mark_safe
+
 
 from .dialog import DialogMachine, fetch_default_logger
 
@@ -23,7 +25,7 @@ FINISH_REASONS = (
     ('timed_out', 'Timed Out'),
 )
 
-
+@python_2_unicode_compatible
 class DialogScript(models.Model):
     name = models.CharField(max_length=1024, default='New Dialog Script')
     created = models.DateTimeField(auto_now_add=True, null=True)
@@ -42,10 +44,11 @@ class DialogScript(models.Model):
     def definition_json(self):
         return mark_safe(json.dumps(self.definition))
 
-    def __unicode__(self):
-        return self.name
+    def __str__(self):
+        return str(self.name)
 
 
+@python_2_unicode_compatible
 class Dialog(models.Model):
     key = models.CharField(null=True, blank=True, max_length=128)
 
@@ -59,7 +62,7 @@ class Dialog(models.Model):
 
     metadata = JSONField(default=dict)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.script is not None:
             return str(self.script)
 
@@ -146,6 +149,7 @@ class Dialog(models.Model):
         return new_transition.actions()
 
 
+@python_2_unicode_compatible
 class DialogStateTransition(models.Model):
     dialog = models.ForeignKey(Dialog, related_name='transitions', null=True, on_delete=models.SET_NULL)
 
@@ -155,7 +159,7 @@ class DialogStateTransition(models.Model):
 
     metadata = JSONField(default=dict)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.prior_state_id) + ' -> ' + str(self.state_id)
 
     def actions(self):
