@@ -10,6 +10,7 @@ import json
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.template import Template, Context
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import mark_safe
@@ -25,10 +26,37 @@ FINISH_REASONS = (
     ('timed_out', 'Timed Out'),
 )
 
+def apply_template(obj, context_dict):
+    if isinstance(obj, str):
+        template = Template(obj)
+        context = Context(context_dict)
+
+        return template.render(context)
+
+    if isinstance(obj, list):
+        new_list = []
+
+        for item in obj:
+            new_list.append(apply_template(item, context_dict))
+
+        return new_list
+
+    if isinstance(obj, dict):
+        new_dict = {}
+
+        for key in obj:
+            new_dict[key] = apply_template(obj[key], context_dict)
+
+        return new_dict
+
+    return obj
+
 @python_2_unicode_compatible
 class DialogScript(models.Model):
     name = models.CharField(max_length=1024, default='New Dialog Script')
     created = models.DateTimeField(auto_now_add=True, null=True)
+
+    identifier = models.SlugField(max_length=1024, null=True, blank=True)
 
     definition = JSONField(null=True, blank=True)
 
@@ -128,6 +156,8 @@ class Dialog(models.Model):
                 new_transition.save()
 
                 actions = new_transition.actions()
+
+            actions = apply_template(actions, self.metadata)
 
             return actions
 
