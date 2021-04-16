@@ -600,7 +600,7 @@ class BranchingPrompt(BaseNode):
             matched_action = None
 
             for action in self.pattern_actions:
-                if re.match(action['pattern'], response) is not None:
+                if re.match(action['pattern'], response, re.IGNORECASE) is not None:
                     matched_action = action
 
             if matched_action is None:
