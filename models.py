@@ -15,8 +15,7 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import mark_safe
 
-
-from .dialog import DialogMachine, fetch_default_logger
+from .dialog import DialogMachine, fetch_default_logger, ExternalChoice
 
 FINISH_REASONS = (
     ('not_finished', 'Not Finished'),
@@ -109,6 +108,8 @@ class Dialog(models.Model):
         return self.finished is None
 
     def process(self, response=None, extras=None):
+        print('DJANGO DIALOG ORM PROCESS: ' + str(response))
+
         if extras is None:
             extras = {}
 
@@ -177,6 +178,26 @@ class Dialog(models.Model):
         new_transition.save()
 
         return new_transition.actions()
+
+    def available_actions(self):
+        actions = []
+
+        last_transition = self.transitions.order_by('-when').first()
+
+        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata)
+
+        if last_transition is not None:
+            dialog_machine.advance_to(last_transition.state_id)
+
+            if isinstance(dialog_machine.current_node, ExternalChoice):
+                dialog_actions = dialog_machine.current_node.actions()
+
+                print(json.dumps(dialog_actions, indent=2))
+
+                for action in dialog_actions:
+                    actions.extend(action['choices'])
+
+        return actions
 
 
 @python_2_unicode_compatible
