@@ -108,8 +108,6 @@ class Dialog(models.Model):
         return self.finished is None
 
     def process(self, response=None, extras=None):
-        print('DJANGO DIALOG ORM PROCESS: ' + str(response))
-
         if extras is None:
             extras = {}
 
@@ -191,8 +189,6 @@ class Dialog(models.Model):
 
             if isinstance(dialog_machine.current_node, ExternalChoice):
                 dialog_actions = dialog_machine.current_node.actions()
-
-                print(json.dumps(dialog_actions, indent=2))
 
                 for action in dialog_actions:
                     actions.extend(action['choices'])
