@@ -40,7 +40,7 @@ MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
 )
 
-ROOT_URLCONF = 'django_dialog_engine.travis_urls'
+ROOT_URLCONF = 'django_dialog_engine.circle_urls'
 
 TEMPLATES = [
     {
