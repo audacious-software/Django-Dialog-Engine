@@ -38,7 +38,7 @@ jobs:
             cd django
             django-admin.py startproject dde
             mv ../django_dialog_engine dde
-            cd pdk
+            cd dde
             cp django_dialog_engine/circle_settings.py dde/settings.py
             cp django_dialog_engine/circle_urls.py dde/urls.py
             python manage.py migrate
@@ -84,7 +84,7 @@ jobs:
             cd django
             django-admin.py startproject dde
             mv ../django_dialog_engine dde
-            cd pdk
+            cd dde
             cp django_dialog_engine/circle_settings.py dde/settings.py
             cp django_dialog_engine/circle_urls.py dde/urls.py
             python manage.py migrate
