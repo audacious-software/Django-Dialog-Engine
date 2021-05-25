@@ -93,7 +93,7 @@ jobs:
             pylint django_dialog_engine
             bandit -r .      
       - save_cache:
-          key: venv-27-{{ .Branch }}-{{ checksum "/home/circleci/django/eed/django_dialog_engine/requirements.txt" }}
+          key: venv-27-{{ .Branch }}-{{ checksum "/home/circleci/django/dde/django_dialog_engine/requirements.txt" }}
           paths:
             - "/home/circleci/venv"
       - store_test_results:
