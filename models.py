@@ -10,7 +10,12 @@ import json
 from six import python_2_unicode_compatible
 
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
+
+try:
+	from django.db.models import JSONField
+except ImportError:
+	from django.contrib.postgres.fields import JSONField
+	
 from django.db import models
 from django.template import Template, Context
 from django.utils import timezone
