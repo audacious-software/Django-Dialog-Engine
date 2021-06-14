@@ -7,12 +7,13 @@ from builtins import str # pylint: disable=redefined-builtin
 
 import json
 
+from six import python_2_unicode_compatible
+
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.template import Template, Context
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import mark_safe
 
 from .dialog import DialogMachine, fetch_default_logger, ExternalChoice
