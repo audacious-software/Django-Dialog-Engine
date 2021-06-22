@@ -104,6 +104,12 @@ class Dialog(models.Model):
 
         return True
 
+    def finish(self, finish_reason='dialog_concluded'):
+        self.finished = timezone.now()
+        self.finish_reason = finish_reason
+
+        self.save()
+
     def is_active(self):
         return self.finished is None
 
