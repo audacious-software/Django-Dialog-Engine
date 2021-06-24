@@ -14,7 +14,7 @@ class DialogAdmin(admin.ModelAdmin):
 @admin.register(DialogScript)
 class DialogScriptAdmin(admin.ModelAdmin):
     list_display = ('name', 'identifier', 'created',)
-    search_fields = ('name', 'identifier', 'description',)
+    search_fields = ('name', 'identifier', 'definition',)
     list_filter = ('created',)
 
 @admin.register(DialogStateTransition)
