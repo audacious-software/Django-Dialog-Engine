@@ -7,8 +7,8 @@ from .models import Dialog, DialogScript, DialogStateTransition
 
 @admin.register(Dialog)
 class DialogAdmin(admin.ModelAdmin):
-    list_display = ('script', 'started', 'finished', 'finish_reason',)
-    search_fields = ('dialog_snapshot', 'finish_reason', 'script',)
+    list_display = ('key', 'script', 'started', 'finished', 'finish_reason',)
+    search_fields = ('key', 'dialog_snapshot', 'finish_reason', 'script',)
     list_filter = ('started', 'finished', 'finish_reason')
 
 @admin.register(DialogScript)
