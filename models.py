@@ -7,16 +7,23 @@ from builtins import str # pylint: disable=redefined-builtin
 
 import json
 
+from six import python_2_unicode_compatible
+
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
+
+try:
+    from django.db.models import JSONField
+except ImportError:
+    from django.contrib.postgres.fields import JSONField
+
 from django.db import models
 from django.template import Template, Context
+from django.urls.exceptions import NoReverseMatch
+from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import mark_safe
 
-
-from .dialog import DialogMachine, fetch_default_logger
+from .dialog import DialogMachine, fetch_default_logger, ExternalChoice
 
 FINISH_REASONS = (
     ('not_finished', 'Not Finished'),
@@ -75,6 +82,13 @@ class DialogScript(models.Model):
     def __str__(self):
         return str(self.name)
 
+    def get_absolute_url(self):
+        try:
+            return reverse('builder_dialog', args=[str(self.pk)])
+        except NoReverseMatch:
+            pass
+
+        return '/admin/django_dialog_engine/dialogscript/' + str(self.pk) + '/change'
 
 @python_2_unicode_compatible
 class Dialog(models.Model):
@@ -104,6 +118,12 @@ class Dialog(models.Model):
             return False
 
         return True
+
+    def finish(self, finish_reason='dialog_concluded'):
+        self.finished = timezone.now()
+        self.finish_reason = finish_reason
+
+        self.save()
 
     def is_active(self):
         return self.finished is None
@@ -177,6 +197,24 @@ class Dialog(models.Model):
         new_transition.save()
 
         return new_transition.actions()
+
+    def available_actions(self):
+        actions = []
+
+        last_transition = self.transitions.order_by('-when').first()
+
+        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata)
+
+        if last_transition is not None:
+            dialog_machine.advance_to(last_transition.state_id)
+
+            if isinstance(dialog_machine.current_node, ExternalChoice):
+                dialog_actions = dialog_machine.current_node.actions()
+
+                for action in dialog_actions:
+                    actions.extend(action['choices'])
+
+        return actions
 
 
 @python_2_unicode_compatible
