@@ -11,7 +11,7 @@ class DialogAdmin(admin.ModelAdmin):
     search_fields = ('key', 'dialog_snapshot', 'finish_reason', 'script',)
     list_filter = ('started', 'finished', 'finish_reason')
 
-def clone_dialog_scripts(modeladmin, request, queryset):
+def clone_dialog_scripts(modeladmin, request, queryset): # pylint: disable=unused-argument
     for item in queryset:
         item.pk = None
         item.name = item.name + ' (Copy)'
