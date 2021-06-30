@@ -18,6 +18,8 @@ except ImportError:
 
 from django.db import models
 from django.template import Template, Context
+from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
 from django.utils import timezone
 from django.utils.html import mark_safe
 
@@ -79,6 +81,33 @@ class DialogScript(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+    def get_absolute_url(self):
+        try:
+            return reverse('builder_dialog', args=[str(self.pk)])
+        except NoReverseMatch:
+            pass
+
+        return '/admin/django_dialog_engine/dialogscript/' + str(self.pk) + '/change'
+
+    def size(self):
+        return len(self.definition)
+
+    def last_started(self):
+        last_dialog = self.dialogs.all().order_by('-started').first()
+
+        if last_dialog is not None:
+            return last_dialog.started
+
+        return None
+
+    def last_finished(self):
+        last_dialog = self.dialogs.exclude(finished=None).order_by('-finished').first()
+
+        if last_dialog is not None:
+            return last_dialog.finished
+
+        return None
 
 
 @python_2_unicode_compatible
