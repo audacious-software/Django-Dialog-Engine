@@ -109,7 +109,6 @@ class DialogScript(models.Model):
 
         return None
 
-
 @python_2_unicode_compatible
 class Dialog(models.Model):
     key = models.CharField(null=True, blank=True, max_length=128)
@@ -138,6 +137,12 @@ class Dialog(models.Model):
             return False
 
         return True
+
+    def finish(self, finish_reason='dialog_concluded'):
+        self.finished = timezone.now()
+        self.finish_reason = finish_reason
+
+        self.save()
 
     def is_active(self):
         return self.finished is None
