@@ -9,6 +9,8 @@ import logging
 import re
 import sys
 
+import numpy
+
 from django.conf import settings
 from django.utils import timezone
 from django.utils.encoding import smart_str
@@ -28,15 +30,16 @@ def fetch_default_logger():
 
     return logger
 
-
 class DialogError(Exception):
     pass
 
 class DialogMachine(object):
-    def __init__(self, definition, metadata=None):
+    def __init__(self, definition, metadata=None, django_object=None):
         self.all_nodes = {}
         self.current_node = None
         self.start_node = None
+
+        self.django_object = django_object
 
         if metadata is None:
             metadata = {}
@@ -99,6 +102,12 @@ class DialogMachine(object):
                     transition.metadata['actions'] = None
 
         return transition
+
+    def prior_transitions(self, new_state_id, prior_state_id, reason=None):
+        if self.django_object is not None:
+            return self.django_object.prior_transitions(new_state_id, prior_state_id, reason)
+
+        return []
 
 class DialogTransition(object): # pylint: disable=too-few-public-methods
     def __init__(self, new_state_id, metadata=None):
@@ -168,6 +177,7 @@ class Prompt(BaseNode):
 
         if logger is None:
             logger = fetch_default_logger()
+
 
         if response is None and last_transition is not None and self.timeout_node_id is not None:
             now = timezone.now()
@@ -442,7 +452,7 @@ class LoopAction(BaseNode):
         if last_transition is not None:
             loop_count = last_transition.dialog.transitions.filter(state_id=self.node_id).count()
 
-        if loop_count <= self.iterations:
+        if loop_count < self.iterations:
             transition = DialogTransition(new_state_id=self.loop_node_id)
 
             transition.metadata['reason'] = 'next-loop'
@@ -461,6 +471,23 @@ class LoopAction(BaseNode):
 
     def actions(self):
         return[]
+
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'loop':
+            if ('next_id' in dialog_def) is False:
+                raise DialogError('next_id missing in: ' + json.dumps(dialog_def, indent=2))
+
+            if ('loop_id' in dialog_def) is False:
+                raise DialogError('loop_id missing in: ' + json.dumps(dialog_def, indent=2))
+
+            if ('iterations' in dialog_def) is False:
+                raise DialogError('iterations missing in: ' + json.dumps(dialog_def, indent=2))
+
+            return LoopAction(dialog_def['id'], dialog_def['next_id'], dialog_def['iterations'], dialog_def['loop_id'])
+
+        return None
+
 
 class WhileAction(BaseNode):
     def __init__(self, action_id, action_type, test, actions):
@@ -564,6 +591,9 @@ class BranchingPrompt(BaseNode):
             if 'timeout' in dialog_def:
                 prompt_node.timeout = dialog_def['timeout']
 
+            if 'timeout_iterations' in dialog_def:
+                prompt_node.timeout_iterations = dialog_def['timeout_iterations']
+
             if 'timeout_node_id' in dialog_def:
                 prompt_node.timeout_node_id = dialog_def['timeout_node_id']
 
@@ -572,7 +602,7 @@ class BranchingPrompt(BaseNode):
 
         return None
 
-    def __init__(self, node_id, actions, prompt, invalid_response_node_id=None, timeout=300, timeout_node_id=None): # pylint: disable=too-many-arguments
+    def __init__(self, node_id, actions, prompt, invalid_response_node_id=None, timeout=300, timeout_node_id=None, timeout_iterations=None): # pylint: disable=too-many-arguments
         super(BranchingPrompt, self).__init__(node_id, node_id)
 
         self.prompt = prompt
@@ -586,6 +616,7 @@ class BranchingPrompt(BaseNode):
 
         self.timeout = timeout
         self.timeout_node_id = timeout_node_id
+        self.timeout_iterations = timeout_iterations
 
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
@@ -631,12 +662,24 @@ class BranchingPrompt(BaseNode):
             now = timezone.now()
 
             if (now - last_transition.when).total_seconds() > self.timeout:
-                transition = DialogTransition(new_state_id=self.timeout_node_id)
+                can_timeout = True
 
-                transition.metadata['reason'] = 'timeout'
-                transition.metadata['timeout_duration'] = self.timeout
+                if self.timeout_iterations is not None:
+                    prior_timeouts = dialog.prior_transitions(new_state_id=self.timeout_node_id, prior_state_id=self.node_id, reason='timeout')
 
-                return transition
+                    if len(prior_timeouts) >= self.timeout_iterations:
+                        can_timeout = False
+
+                if can_timeout:
+                    transition = DialogTransition(new_state_id=self.timeout_node_id)
+                    transition.refresh = True
+
+                    transition.metadata['reason'] = 'timeout'
+                    transition.metadata['timeout_duration'] = self.timeout
+
+                    return transition
+                else:
+                    return None
 
         if last_transition is not None:
             if last_transition.state_id != self.node_id:
@@ -744,3 +787,40 @@ class ExternalChoice(BaseNode):
             })
 
         return [available_choices]
+
+class RandomBranch(BaseNode):
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'random-branch':
+            branch_node = RandomBranch(dialog_def['id'], dialog_def['actions'])
+
+            return branch_node
+
+        return None
+
+    def __init__(self, node_id, actions):
+        super(RandomBranch, self).__init__(node_id, node_id)
+
+        if actions is None:
+            self.random_actions = []
+        else:
+            self.random_actions = actions
+
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+        choices = []
+        weights = []
+
+        for action in self.random_actions:
+            choices.append(action['action'])
+            weights.append(action['weight'])
+
+        chosen = numpy.random.choice(choices, p=weights)
+
+        transition = DialogTransition(new_state_id=self.chosen)
+
+        transition.metadata['reason'] = 'random-branch'
+
+        return transition
+
+    def actions(self):
+        return []

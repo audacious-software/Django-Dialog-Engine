@@ -160,7 +160,7 @@ class Dialog(models.Model):
 
         last_transition = self.transitions.order_by('-when').first()
 
-        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata)
+        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata, django_object=self)
 
         if last_transition is not None:
             dialog_machine.advance_to(last_transition.state_id)
@@ -234,6 +234,15 @@ class Dialog(models.Model):
                     actions.extend(action['choices'])
 
         return actions
+
+    def prior_transitions(self, new_state_id, prior_state_id, reason=None):
+        transitions = []
+
+        for transition in self.transitions.filter(state_id=new_state_id, prior_state_id=prior_state_id):
+            if reason is None or transition.metadata['reason'] == reason:
+                transitions.append(transition)
+
+        return transitions
 
 
 @python_2_unicode_compatible
