@@ -618,7 +618,7 @@ class BranchingPrompt(BaseNode):
         self.timeout_node_id = timeout_node_id
         self.timeout_iterations = timeout_iterations
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches
         if extras is None:
             extras = {}
 
@@ -678,8 +678,8 @@ class BranchingPrompt(BaseNode):
                     transition.metadata['timeout_duration'] = self.timeout
 
                     return transition
-                else:
-                    return None
+
+                return None
 
         if last_transition is not None:
             if last_transition.state_id != self.node_id:
@@ -816,7 +816,7 @@ class RandomBranch(BaseNode):
 
         chosen = numpy.random.choice(choices, p=weights)
 
-        transition = DialogTransition(new_state_id=self.chosen)
+        transition = DialogTransition(new_state_id=chosen)
 
         transition.metadata['reason'] = 'random-branch'
 
