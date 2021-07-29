@@ -576,15 +576,11 @@ class CustomNode(BaseNode):
         return None
 
     def actions(self): # nosec
-        print('SCRIPT: ' + self.actions_script)
-
         code = compile(self.actions_script, '<string>', 'exec')
 
         custom_actions = []
 
         eval(code, {}, {'definition': self.definition, 'actions': custom_actions}) # pylint: disable=eval-used
-
-        print('ACTIONS: ' + str(custom_actions))
 
         for action in custom_actions:
             if isinstance(action['type'], basestring) is False:
