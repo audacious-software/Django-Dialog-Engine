@@ -94,7 +94,7 @@ class DialogMachine(object):
                 else:
                     transition.metadata['actions'] = transition.metadata['exit_actions']
 
-                transition.metadata['actions'] += self.all_nodes[transition.new_state_id].actions()
+                transition.metadata['actions'] += self.actions_for_state(transition.new_state_id)
 
                 if transition.metadata['actions']:
                     pass
@@ -108,6 +108,15 @@ class DialogMachine(object):
             return self.django_object.prior_transitions(new_state_id, prior_state_id, reason)
 
         return []
+
+    def actions_for_state(self, state_id):
+        actions = self.all_nodes[state_id].actions()
+
+        if actions is None:
+            actions = []
+
+        return actions
+
 
 class DialogTransition(object): # pylint: disable=too-few-public-methods
     def __init__(self, new_state_id, metadata=None):
@@ -567,11 +576,15 @@ class CustomNode(BaseNode):
         return None
 
     def actions(self): # nosec
+        print('SCRIPT: ' + self.actions_script)
+
         code = compile(self.actions_script, '<string>', 'exec')
 
         custom_actions = []
 
         eval(code, {}, {'definition': self.definition, 'actions': custom_actions}) # pylint: disable=eval-used
+
+        print('ACTIONS: ' + str(custom_actions))
 
         for action in custom_actions:
             if isinstance(action['type'], basestring) is False:

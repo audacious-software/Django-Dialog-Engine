@@ -202,6 +202,11 @@ class Dialog(models.Model):
 
         return []
 
+    def current_node(self):
+        last_transition = self.transitions.order_by('-when').first()
+
+        return last_transition.state_id
+
     def advance_to(self, state_id):
         last_transition = self.transitions.order_by('-when').first()
 
@@ -212,6 +217,10 @@ class Dialog(models.Model):
         if last_transition is not None:
             new_transition.prior_state_id = last_transition.state_id
             new_transition.metadata = last_transition.metadata
+
+        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata, django_object=self)
+
+        new_transition.metadata['actions'] = dialog_machine.actions_for_state(state_id)
 
         new_transition.save()
 
@@ -259,7 +268,7 @@ class DialogStateTransition(models.Model):
         return str(self.prior_state_id) + ' -> ' + str(self.state_id)
 
     def actions(self):
-        if 'actions' in self.metadata:
+        if 'actions' in self.metadata and self.metadata['actions'] is not None:
             return self.metadata['actions']
 
         return []
