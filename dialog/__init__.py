@@ -114,7 +114,7 @@ class DialogMachine(object):
                 else:
                     transition.metadata['actions'] = transition.metadata['exit_actions']
 
-                transition.metadata['actions'] += self.all_nodes[transition.new_state_id].actions()
+                transition.metadata['actions'] += self.actions_for_state(transition.new_state_id)
 
                 if transition.metadata['actions']:
                     pass
@@ -138,6 +138,14 @@ class DialogMachine(object):
     def push_value(self, key, value):
         if self.django_object is not None:
             return self.django_object.push_value(key, value)
+
+    def actions_for_state(self, state_id):
+        actions = self.all_nodes[state_id].actions()
+
+        if actions is None:
+            actions = []
+
+        return actions
 
 class DialogTransition(object): # pylint: disable=too-few-public-methods
     def __init__(self, new_state_id, metadata=None):
