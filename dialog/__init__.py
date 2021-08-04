@@ -8,8 +8,12 @@ import json
 import logging
 import re
 import sys
+import traceback
 
+import jsonpath2
+import lxml
 import numpy
+import requests
 
 from django.conf import settings
 from django.utils import timezone
@@ -85,6 +89,22 @@ class DialogMachine(object):
         if self.current_node is None:
             return None
 
+        if response is not None:
+            for key in self.all_nodes:
+                node = self.all_nodes[key]
+
+                if isinstance(node, (Interrupt,)):
+                    pattern_matched = node.matches(response)
+                    if pattern_matched is not None:
+                        transition = DialogTransition(new_state_id=node.node_id)
+
+                        transition.metadata['reason'] = 'interrupt'
+                        transition.metadata['pattern'] = 'pattern_matched'
+                        transition.metadata['response'] = response
+                        transition.metadata['actions'] = []
+
+                        return transition
+
         transition = self.current_node.evaluate(self, response, last_transition, extras, logger)
 
         if transition is not None:
@@ -108,6 +128,16 @@ class DialogMachine(object):
             return self.django_object.prior_transitions(new_state_id, prior_state_id, reason)
 
         return []
+
+    def pop_value(self, key):
+        if self.django_object is not None:
+            return self.django_object.pop_value(key)
+
+        return None
+
+    def push_value(self, key, value):
+        if self.django_object is not None:
+            return self.django_object.push_value(key, value)
 
 class DialogTransition(object): # pylint: disable=too-few-public-methods
     def __init__(self, new_state_id, metadata=None):
@@ -488,7 +518,6 @@ class LoopAction(BaseNode):
 
         return None
 
-
 class WhileAction(BaseNode):
     def __init__(self, action_id, action_type, test, actions):
         super(WhileAction, self).__init__(action_id, action_type)
@@ -824,3 +853,276 @@ class RandomBranch(BaseNode):
 
     def actions(self):
         return []
+
+class Interrupt(BaseNode):
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'interrupt':
+            interrupt_node = Interrupt(dialog_def['id'], dialog_def['match_patterns'], dialog_def['next_id'])
+
+            return interrupt_node
+
+        return None
+
+    def __init__(self, node_id, match_patterns, next_node_id):
+        super(Interrupt, self).__init__(node_id, next_node_id)
+
+        if match_patterns is None:
+            self.match_patterns = []
+        else:
+            self.match_patterns = match_patterns
+
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+        if extras is None:
+            extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
+            
+        dialog.push_value('django_dialog_engine_interrupt_node_stack', last_transition.prior_state_id)
+
+        transition = DialogTransition(new_state_id=self.next_node_id)
+
+        transition.metadata['reason'] = 'interrupt-continue'
+
+        return transition
+
+    def actions(self):
+        return []
+
+    def matches(self, response):
+        if response is None:
+            return None
+
+        for match_pattern in self.match_patterns:
+            if re.search(match_pattern, response) is not None:
+                return match_pattern
+
+        return None
+
+class InterruptResume(BaseNode):
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'interrupt-resume':
+            interrupt_resume_node = InterruptResume(dialog_def['id'], dialog_def['force_top'])
+
+            return interrupt_resume_node
+
+        return None
+
+    def __init__(self, node_id, force_top):
+        super(InterruptResume, self).__init__(node_id, node_id)
+
+        if force_top is None:
+            self.force_top = False
+        else:
+            self.force_top = force_top
+
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+        if extras is None:
+            extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
+
+        next_node_id = dialog.pop_value('django_dialog_engine_interrupt_node_stack')
+
+        if self.force_top:
+            next_value = dialog.pop_value('django_dialog_engine_interrupt_node_stack')
+
+            while next_value is not None:
+                next_node_id = next_value
+
+                next_value = dialog.pop_value('django_dialog_engine_interrupt_node_stack')
+
+        transition = DialogTransition(new_state_id=next_node_id)
+
+        transition.metadata['reason'] = 'interrupt-resume'
+        transition.metadata['force_top'] = self.force_top
+
+        return transition
+
+    def actions(self):
+        return []
+
+
+class HttpResponseBranch(BaseNode):
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'http-response':
+            prompt_node = HttpResponseBranch(dialog_def['id'], dialog_def['url'], dialog_def['actions'])
+
+            if 'no_match' in dialog_def:
+                prompt_node.invalid_response_node_id = dialog_def['no_match']
+
+            if 'timeout' in dialog_def:
+                prompt_node.timeout = dialog_def['timeout']
+
+            if 'timeout_iterations' in dialog_def:
+                prompt_node.timeout_iterations = dialog_def['timeout_iterations']
+
+            if 'timeout_node_id' in dialog_def:
+                prompt_node.timeout_node_id = dialog_def['timeout_node_id']
+
+            if 'method' in dialog_def:
+                prompt_node.method = dialog_def['method']
+            else:
+                prompt_node.method = 'GET'
+
+            if 'headers' in dialog_def:
+                prompt_node.headers = dialog_def['headers']
+            else:
+                prompt_node.headers = []
+
+            if 'parameters' in dialog_def:
+                prompt_node.parameters = dialog_def['parameters']
+            else:
+                prompt_node.parameters = []
+
+            if 'pattern_matcher' in dialog_def:
+                prompt_node.pattern_matcher = dialog_def['pattern_matcher']
+            else:
+                prompt_node.pattern_matcher = 're'
+
+            return prompt_node
+
+        return None
+
+    def __init__(self, node_id, url, actions, invalid_response_node_id=None, timeout=300, timeout_node_id=None, timeout_iterations=None, method='GET', headers=list(), parameters=list(), pattern_matcher='re'): # pylint: disable=too-many-arguments
+        super(HttpResponseBranch, self).__init__(node_id, node_id)
+
+        self.url = url
+
+        self.invalid_response_node_id = invalid_response_node_id
+
+        if actions is None:
+            self.pattern_actions = []
+        else:
+            self.pattern_actions = actions
+
+        self.timeout = timeout
+        self.timeout_node_id = timeout_node_id
+        self.timeout_iterations = timeout_iterations
+
+        self.method = method
+        self.headers = headers
+        self.parameters = parameters
+        self.pattern_matcher = pattern_matcher
+
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches
+        if extras is None:
+            extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
+
+        parameters = {}
+
+        for param in self.parameters:
+            tokens = param.split('=', 1)
+
+            if len(tokens) > 1:
+                parameters[tokens[0]] = tokens[1]
+
+        headers = {
+            'User-Agent': 'Django Dialog Engine'
+        }
+
+        for header in self.headers:
+            tokens = header.split('=', 1)
+
+            if len(tokens) > 1:
+                headers[tokens[0]] = tokens[1]
+
+        response = None
+
+        try:
+            if self.method == 'POST':
+                if self.timeout_node_id is not None:
+                    response = requests.post(self.url, headers=headers, data=parameters, timeout=self.timeout)
+                else:
+                    response = requests.post(self.url, headers=headers, data=parameters)
+            else:
+                if self.timeout_node_id is not None:
+                    response = requests.get(self.url, headers=headers, data=parameters, timeout=self.timeout)
+                else:
+                    response = requests.get(self.url, headers=headers, data=parameters)
+
+            if response.status_code >= 200 and response.status_code < 300: # Valid response
+                matched_action = None
+
+                if self.pattern_matcher == 're':
+                    for action in self.pattern_actions:
+                        if re.search(action['pattern'], response.text) is not None:
+                            matched_action = action
+
+                elif self.pattern_matcher == 'jsonpath':
+                    for action in self.pattern_actions:
+                        parser = jsonpath2.path.Path.parse_str(action['pattern'])
+                        
+                        matches = list(parser.match(response.json()))
+
+                        if len(matches) > 0:
+                            matched_action = action
+                            
+                elif self.pattern_matcher == 'xpath':
+                    for action in self.pattern_actions:
+                        tree = lxml.html.fromstring(response.content)
+
+                        matches = tree.xpath(action['pattern'])
+
+                        if matches:
+                            matched_action = action
+
+                if matched_action is not None:
+                    transition = DialogTransition(new_state_id=matched_action['action'])
+
+                    transition.metadata['reason'] = 'valid-response'
+                    transition.metadata['url'] = self.url
+                    transition.metadata['method'] = self.method
+                    transition.metadata['parameters'] = parameters
+                    transition.metadata['headers'] = headers
+                    transition.metadata['http-status-code'] = response.status_code
+                    transition.metadata['response'] = response.text
+                    transition.metadata['actions'] = self.pattern_actions
+
+                    return transition
+                
+            if self.invalid_response_node_id is not None:
+                transition = DialogTransition(new_state_id=self.invalid_response_node_id)
+
+                transition.metadata['reason'] = 'no-match'
+                transition.metadata['url'] = self.url
+                transition.metadata['method'] = self.method
+                transition.metadata['parameters'] = parameters
+                transition.metadata['headers'] = headers
+                transition.metadata['http-status-code'] = response.status_code
+                transition.metadata['response'] = response.text
+                transition.metadata['actions'] = self.pattern_actions
+
+                transition.refresh = True
+
+                return transition
+        except requests.exceptions.Timeout:
+            transition = DialogTransition(new_state_id=self.timeout_node_id)
+            transition.refresh = True
+
+            transition.metadata['reason'] = 'timeout'
+            transition.metadata['timeout_duration'] = self.timeout
+
+            return transition
+        except:
+            traceback.print_exc()
+            
+            transition = DialogTransition(new_state_id=self.invalid_response_node_id)
+            transition.refresh = True
+
+            transition.metadata['reason'] = 'error'
+            transition.metadata['error'] = traceback.format_exc()
+
+            return transition
+
+        return None
+
+    def actions(self):
+        return[]

@@ -1,0 +1,63 @@
+[{
+	"id": "dialog-start",
+	"type": "begin",
+	"next_id": "echo-1",
+	"builder_group": "Dialog"
+}, {
+	"id": "echo-1",
+	"name": "Hello World",
+	"type": "echo",
+	"message": "Hello World",
+	"next_id": "test-variable",
+	"builder_group": "Dialog"
+}, {
+	"id": "dialog-end",
+	"type": "end",
+	"builder_group": "Dialog"
+}, {
+	"id": "interrupt-resume",
+	"name": "Interrupt End",
+	"type": "interrupt-resume",
+	"context": "(Context goes here...)",
+	"next_id": null,
+	"force_top": false,
+	"builder_group": "Interrupts"
+}, {
+	"id": "interrupt-start",
+	"name": "Interrupt",
+	"type": "interrupt",
+	"context": "(Context goes here...)",
+	"next_id": "interrupt-message",
+	"builder_group": "Interrupts",
+	"match_patterns": ["foo", "bar"]
+}, {
+	"id": "interrupt-message",
+	"name": "Interrupt message",
+	"type": "echo",
+	"context": "(Context goes here...)",
+	"message": "In interrrupt",
+	"next_id": "interrupt-wait",
+	"builder_group": "Interrupts"
+}, {
+	"id": "test-variable",
+	"name": "Pause for Response",
+	"type": "branch-prompt",
+	"prompt": "Enter anything...",
+	"actions": [{
+		"action": "dialog-end",
+		"pattern": ".*"
+	}],
+	"no_match": "dialog-end",
+	"builder_group": "Dialog"
+}, {
+	"id": "interrupt-wait",
+	"name": "Interrupt Wait",
+	"type": "branch-prompt",
+	"prompt": "Enter something...",
+	"actions": [{
+		"action": "interrupt-resume",
+		"pattern": ".*"
+	}],
+	"no_match": "interrupt-resume",
+	"builder_group": "Interrupts"
+}]

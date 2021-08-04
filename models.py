@@ -171,7 +171,7 @@ class Dialog(models.Model):
             logger = settings.FETCH_LOGGER()
         except AttributeError:
             pass
-
+            
         transition = dialog_machine.evaluate(response=response, last_transition=last_transition, extras=extras, logger=logger)
 
         if transition is None:
@@ -217,6 +217,14 @@ class Dialog(models.Model):
 
         return new_transition.actions()
 
+    def current_state_id(self):
+        last_transition = self.transitions.order_by('-when').first()
+
+        if last_transition is not None:
+            return last_transition.state_id
+
+        return None
+
     def available_actions(self):
         actions = []
 
@@ -243,6 +251,59 @@ class Dialog(models.Model):
                 transitions.append(transition)
 
         return transitions
+
+    def get_value(self, key):
+        if 'values' in self.metadata:
+            if key in self.metadata['values']:
+                return self.metadata['values'][key]
+            
+        return None
+
+    def put_value(self, key, value):
+        if ('values' in self.metadata) is False:
+            self.metadata['values'] = {}
+            
+        if value is None and key in self.metadata['values']:
+            del self.metadata['values'][key]
+        else:
+            self.metadata['values'][key] = value
+        
+        self.save()
+
+    def pop_value(self, key):
+        value = self.get_value(key)
+        
+        if value is None:
+            return None
+        elif isinstance(value, (list,)):
+            if len(value) > 0:
+                new_value = value.pop()
+            
+                self.put_value(key, value)
+            
+                return new_value
+                
+            return None
+        else:
+            del self.metadata['values'][key]
+            self.save()
+
+        return value
+
+    def push_value(self, key, value):
+        list_value = self.get_value(key)
+        
+        if list_value is None:
+            list_value = []
+        elif isinstance(list_value, (list,)) is False:
+            list_value = [list_value]
+        
+        if isinstance(value, (list,)):
+            list_value.extend(value)
+        else:   
+            list_value.append(value)
+            
+        self.put_value(key, list_value)
 
 
 @python_2_unicode_compatible
