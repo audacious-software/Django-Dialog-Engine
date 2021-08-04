@@ -1,3 +1,5 @@
+# pylint: disable=line-too-long, no-member
+
 import json
 
 from django.test import TestCase
@@ -7,11 +9,10 @@ from ..models import Dialog
 
 class InterruptsTestCase(TestCase):
     def setUp(self):
-        definition_file = open('django_dialog_engine/tests/scripts/interrupt_script.json',)
+        with open('django_dialog_engine/tests/scripts/interrupt_script.json',) as definition_file:
+            dialog_definition = json.load(definition_file)
 
-        dialog_definition = json.load(definition_file)
-
-        self.dialog = Dialog.objects.create(dialog_snapshot=dialog_definition, started=timezone.now())
+            self.dialog = Dialog.objects.create(dialog_snapshot=dialog_definition, started=timezone.now())
 
     def test_dialog_variable_stack(self):
         self.dialog.put_value('foo', 'bar')

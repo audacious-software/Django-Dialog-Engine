@@ -171,7 +171,7 @@ class Dialog(models.Model):
             logger = settings.FETCH_LOGGER()
         except AttributeError:
             pass
-            
+
         transition = dialog_machine.evaluate(response=response, last_transition=last_transition, extras=extras, logger=logger)
 
         if transition is None:
@@ -202,11 +202,6 @@ class Dialog(models.Model):
 
         return []
 
-    def current_node(self):
-        last_transition = self.transitions.order_by('-when').first()
-
-        return last_transition.state_id
-
     def advance_to(self, state_id):
         last_transition = self.transitions.order_by('-when').first()
 
@@ -217,10 +212,6 @@ class Dialog(models.Model):
         if last_transition is not None:
             new_transition.prior_state_id = last_transition.state_id
             new_transition.metadata = last_transition.metadata
-
-        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata, django_object=self)
-
-        new_transition.metadata['actions'] = dialog_machine.actions_for_state(state_id)
 
         new_transition.save()
 
@@ -265,33 +256,33 @@ class Dialog(models.Model):
         if 'values' in self.metadata:
             if key in self.metadata['values']:
                 return self.metadata['values'][key]
-            
+
         return None
 
     def put_value(self, key, value):
         if ('values' in self.metadata) is False:
             self.metadata['values'] = {}
-            
+
         if value is None and key in self.metadata['values']:
             del self.metadata['values'][key]
         else:
             self.metadata['values'][key] = value
-        
+
         self.save()
 
     def pop_value(self, key):
         value = self.get_value(key)
-        
-        if value is None:
+
+        if value is None: # pylint: disable=no-else-return
             return None
         elif isinstance(value, (list,)):
             if len(value) > 0:
                 new_value = value.pop()
-            
+
                 self.put_value(key, value)
-            
+
                 return new_value
-                
+
             return None
         else:
             del self.metadata['values'][key]
@@ -301,17 +292,17 @@ class Dialog(models.Model):
 
     def push_value(self, key, value):
         list_value = self.get_value(key)
-        
+
         if list_value is None:
             list_value = []
         elif isinstance(list_value, (list,)) is False:
             list_value = [list_value]
-        
+
         if isinstance(value, (list,)):
             list_value.extend(value)
-        else:   
+        else:
             list_value.append(value)
-            
+
         self.put_value(key, list_value)
 
 
@@ -329,7 +320,7 @@ class DialogStateTransition(models.Model):
         return str(self.prior_state_id) + ' -> ' + str(self.state_id)
 
     def actions(self):
-        if 'actions' in self.metadata and self.metadata['actions'] is not None:
+        if 'actions' in self.metadata:
             return self.metadata['actions']
 
         return []

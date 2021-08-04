@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long, useless-object-inheritance, super-with-arguments
+# pylint: disable=line-too-long, useless-object-inheritance, super-with-arguments, too-many-lines
 
 from builtins import str # pylint: disable=redefined-builtin
 from builtins import object # pylint: disable=redefined-builtin
@@ -79,7 +79,7 @@ class DialogMachine(object):
         except KeyError:
             pass # Cannot continue - stay in same place.
 
-    def evaluate(self, response=None, last_transition=None, extras=None, logger=None):
+    def evaluate(self, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-branches
         if extras is None:
             extras = {}
 
@@ -137,7 +137,7 @@ class DialogMachine(object):
 
     def push_value(self, key, value):
         if self.django_object is not None:
-            return self.django_object.push_value(key, value)
+            self.django_object.push_value(key, value)
 
     def actions_for_state(self, state_id):
         actions = self.all_nodes[state_id].actions()
@@ -886,7 +886,7 @@ class Interrupt(BaseNode):
 
         if logger is None:
             logger = fetch_default_logger()
-            
+
         dialog.push_value('django_dialog_engine_interrupt_node_stack', last_transition.prior_state_id)
 
         transition = DialogTransition(new_state_id=self.next_node_id)
@@ -954,9 +954,9 @@ class InterruptResume(BaseNode):
         return []
 
 
-class HttpResponseBranch(BaseNode):
+class HttpResponseBranch(BaseNode): # pylint: disable=too-many-instance-attributes
     @staticmethod
-    def parse(dialog_def):
+    def parse(dialog_def): # pylint: disable=too-many-branches
         if dialog_def['type'] == 'http-response':
             prompt_node = HttpResponseBranch(dialog_def['id'], dialog_def['url'], dialog_def['actions'])
 
@@ -996,8 +996,14 @@ class HttpResponseBranch(BaseNode):
 
         return None
 
-    def __init__(self, node_id, url, actions, invalid_response_node_id=None, timeout=300, timeout_node_id=None, timeout_iterations=None, method='GET', headers=list(), parameters=list(), pattern_matcher='re'): # pylint: disable=too-many-arguments
+    def __init__(self, node_id, url, actions, invalid_response_node_id=None, timeout=300, timeout_node_id=None, timeout_iterations=None, method='GET', headers=None, parameters=None, pattern_matcher='re'): # pylint: disable=too-many-arguments
         super(HttpResponseBranch, self).__init__(node_id, node_id)
+
+        if headers is None:
+            headers = []
+
+        if parameters is None:
+            parameters = []
 
         self.url = url
 
@@ -1017,7 +1023,7 @@ class HttpResponseBranch(BaseNode):
         self.parameters = parameters
         self.pattern_matcher = pattern_matcher
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches, too-many-locals, too-many-statements
         if extras is None:
             extras = {}
 
@@ -1067,12 +1073,12 @@ class HttpResponseBranch(BaseNode):
                 elif self.pattern_matcher == 'jsonpath':
                     for action in self.pattern_actions:
                         parser = jsonpath2.path.Path.parse_str(action['pattern'])
-                        
+
                         matches = list(parser.match(response.json()))
 
                         if len(matches) > 0:
                             matched_action = action
-                            
+
                 elif self.pattern_matcher == 'xpath':
                     for action in self.pattern_actions:
                         tree = lxml.html.fromstring(response.content)
@@ -1095,7 +1101,7 @@ class HttpResponseBranch(BaseNode):
                     transition.metadata['actions'] = self.pattern_actions
 
                     return transition
-                
+
             if self.invalid_response_node_id is not None:
                 transition = DialogTransition(new_state_id=self.invalid_response_node_id)
 
@@ -1119,9 +1125,7 @@ class HttpResponseBranch(BaseNode):
             transition.metadata['timeout_duration'] = self.timeout
 
             return transition
-        except:
-            traceback.print_exc()
-            
+        except: # pylint: disable=bare-except
             transition = DialogTransition(new_state_id=self.invalid_response_node_id)
             transition.refresh = True
 
