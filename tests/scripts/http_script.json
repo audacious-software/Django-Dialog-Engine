@@ -53,7 +53,7 @@
 	"method": "GET",
 	"actions": [{
 		"action": "get-success-jsonpath",
-		"pattern": "$.args[?(@.foobar = \"foobaz\")]"
+		"pattern": "$.args[?(@ = 'foobaz')]"
 	}],
 	"headers": ["X-Example-Header=hello world"],
 	"no_match": "get-failed-jsonpath",

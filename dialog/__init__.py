@@ -10,10 +10,11 @@ import re
 import sys
 import traceback
 
-import jsonpath2
 import lxml # nosec
 import numpy
 import requests
+
+from jsonpath_ng.ext import parse as jsonpath_ng_parse
 
 from django.conf import settings
 from django.utils import timezone
@@ -1072,13 +1073,13 @@ class HttpResponseBranch(BaseNode): # pylint: disable=too-many-instance-attribut
 
                 elif self.pattern_matcher == 'jsonpath':
                     for action in self.pattern_actions:
-                        parser = jsonpath2.path.Path.parse_str(action['pattern'])
-
-                        matches = list(parser.match(response.json()))
+                        parser = jsonpath_ng_parse(action['pattern'])
+                        
+                        matches = list(parser.find(response.json()))
 
                         if len(matches) > 0:
                             matched_action = action
-
+                        
                 elif self.pattern_matcher == 'xpath':
                     for action in self.pattern_actions:
                         tree = lxml.html.fromstring(response.content)
@@ -1126,6 +1127,8 @@ class HttpResponseBranch(BaseNode): # pylint: disable=too-many-instance-attribut
 
             return transition
         except: # pylint: disable=bare-except
+            traceback.print_exc()
+            
             transition = DialogTransition(new_state_id=self.invalid_response_node_id)
             transition.refresh = True
 
