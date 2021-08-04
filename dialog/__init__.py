@@ -11,7 +11,7 @@ import sys
 import traceback
 
 import jsonpath2
-import lxml
+import lxml # nosec
 import numpy
 import requests
 
