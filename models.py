@@ -276,7 +276,7 @@ class Dialog(models.Model):
         if value is None: # pylint: disable=no-else-return
             return None
         elif isinstance(value, (list,)):
-            if len(value) > 0:
+            if len(value) > 0: # pylint: disable=len-as-condition
                 new_value = value.pop()
 
                 self.put_value(key, value)

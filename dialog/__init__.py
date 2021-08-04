@@ -1077,7 +1077,7 @@ class HttpResponseBranch(BaseNode): # pylint: disable=too-many-instance-attribut
 
                         matches = list(parser.find(response.json()))
 
-                        if len(matches) > 0:
+                        if len(matches) > 0: # pylint: disable=len-as-condition
                             matched_action = action
 
                 elif self.pattern_matcher == 'xpath':
