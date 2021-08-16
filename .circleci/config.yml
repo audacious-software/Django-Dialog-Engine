@@ -23,6 +23,7 @@ jobs:
           POSTGRES_DB: circle_test
           POSTGRES_PASSWORD: ""
     steps:
+      - node/install
       - node/install-npm
       - checkout
       - restore_cache:
