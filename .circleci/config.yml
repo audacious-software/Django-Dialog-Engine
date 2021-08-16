@@ -2,7 +2,8 @@ version: 2.1
 
 orbs:
   python: circleci/python@1.2
-
+  node: circleci/node@4.7.0
+  
 workflows:
   build:
     jobs:
@@ -46,6 +47,17 @@ jobs:
             cp django_dialog_engine/.pylintrc .
             pylint django_dialog_engine
             bandit -r .      
+      - run:
+          name: Test dialogs (Botium)
+          command: |
+            pwd
+            ls
+            npm install -g botium-cli botium-core
+            export BOTIUM_JSON_PATH="./django_dialog_engine/botium/botium.json"
+            export BOTIUM_DDE_DIALOG_SCRIPT_PATH="./django_dialog_engine/botium/dialog_scripts/prompt_test.json"
+            export BOTIUM_DDE_DIALOG_USER_ID="circle-ci:tester"
+            export BOTIUM_DDE_DIALOG_ID="circle-ci-test"
+            botium-cli -c $BOTIUM_JSON_PATH -C django_dialog_engine/botium/convos/prompt_test/ run
       - save_cache:
           key: venv-38-{{ .Branch }}-{{ checksum "/home/circleci/django/dde/django_dialog_engine/requirements.txt" }}
           paths:

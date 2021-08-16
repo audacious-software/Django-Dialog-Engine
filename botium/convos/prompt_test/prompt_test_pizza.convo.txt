@@ -1,0 +1,18 @@
+#me
+Hello
+
+#bot
+Please pick a number between 1 and 9.
+
+#me
+Pizza!
+
+#bot
+That's not a number!
+Please pick a number between 1 and 9.
+
+#me
+3
+
+#bot
+Good choice!

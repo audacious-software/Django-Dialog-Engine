@@ -1,0 +1,37 @@
+[{
+	"id": "dialog-start",
+	"type": "begin",
+	"next_id": "pick-number",
+	"builder_group": "Dialog"
+}, {
+	"id": "pick-number",
+	"name": "Number Prompt",
+	"type": "branch-prompt",
+	"prompt": "Please pick a number between 1 and 9.",
+	"actions": [{
+		"action": "thanks",
+		"pattern": "[1-9]"
+	}],
+	"no_match": "not-a-number",
+	"builder_group": "Dialog"
+}, {
+	"id": "not-a-number",
+	"name": "Not a Number!",
+	"type": "echo",
+	"context": "(Context goes here...)",
+	"message": "That's not a number!",
+	"next_id": "pick-number",
+	"builder_group": "Dialog"
+}, {
+	"id": "thanks",
+	"name": "Thanks!",
+	"type": "echo",
+	"context": "(Context goes here...)",
+	"message": "Good choice!",
+	"next_id": "dialog-end",
+	"builder_group": "Dialog"
+}, {
+	"id": "dialog-end",
+	"type": "end",
+	"builder_group": "Dialog"
+}]
