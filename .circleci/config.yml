@@ -49,12 +49,12 @@ jobs:
             pylint django_dialog_engine
             bandit -r .
       - run:
-          name: Test dialogs (Botium)
+          name: Test dialog content
           command: |
             . /home/circleci/venv/bin/activate
             cd ..
             cd django/dde
-            npm install -g botium-cli botium-core
+            npm install -g -s botium-cli botium-core
             export BOTIUM_DDE_DIALOG_SCRIPT_PATH="./django_dialog_engine/botium/dialog_scripts/prompt_test.json"
             export BOTIUM_DDE_DIALOG_USER_ID="circle-ci:tester"
             export BOTIUM_DDE_DIALOG_ID="circle-ci-test"
@@ -107,12 +107,12 @@ jobs:
             pylint django_dialog_engine
             bandit -r .
       - run:
-          name: Test dialogs (Botium)
+          name: Test dialog content
           command: |
             . /home/circleci/venv/bin/activate
             cd ..
             cd django/dde
-            npm install -g botium-cli botium-core
+            npm install -g -s botium-cli botium-core
             export BOTIUM_DDE_DIALOG_SCRIPT_PATH="./django_dialog_engine/botium/dialog_scripts/prompt_test.json"
             export BOTIUM_DDE_DIALOG_USER_ID="circle-ci:tester"
             export BOTIUM_DDE_DIALOG_ID="circle-ci-test"
