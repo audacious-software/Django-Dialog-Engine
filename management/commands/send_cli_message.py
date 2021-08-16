@@ -4,19 +4,16 @@
 from __future__ import print_function
 
 from builtins import str # pylint: disable=redefined-builtin
-from builtins import input # pylint: disable=redefined-builtin
 
 import json
 import os
-import signal
-import time
 
 from future import standard_library
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from ...models import DialogScript, Dialog
+from ...models import Dialog
 
 standard_library.install_aliases()
 
@@ -29,7 +26,7 @@ class Command(BaseCommand):
         parser.add_argument('message', type=str)
 
     def handle(self, *args, **options):
-        dialog_user_id = options['dialog_user_id'];
+        dialog_user_id = options['dialog_user_id']
         dialog_script_path = options['dialog_script_path']
 
         filename = os.path.basename(os.path.normpath(dialog_script_path))
