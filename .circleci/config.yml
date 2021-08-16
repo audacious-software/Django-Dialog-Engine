@@ -24,7 +24,6 @@ jobs:
           POSTGRES_PASSWORD: ""
     steps:
       - node/install
-      - node/install-npm
       - checkout
       - restore_cache:
           key: venv-38-{{ .Branch }}-{{ checksum "requirements.txt" }}
@@ -61,7 +60,7 @@ jobs:
             export BOTIUM_DDE_DIALOG_SCRIPT_PATH="./django_dialog_engine/botium/dialog_scripts/prompt_test.json"
             export BOTIUM_DDE_DIALOG_USER_ID="circle-ci:tester"
             export BOTIUM_DDE_DIALOG_ID="circle-ci-test"
-            botium-cli -c $BOTIUM_JSON_PATH -C django_dialog_engine/botium/convos/prompt_test/ run
+            botium-cli run -c $BOTIUM_JSON_PATH -C django_dialog_engine/botium/convos/prompt_test/ run
       - save_cache:
           key: venv-38-{{ .Branch }}-{{ checksum "/home/circleci/django/dde/django_dialog_engine/requirements.txt" }}
           paths:
@@ -84,8 +83,8 @@ jobs:
           POSTGRES_DB: circle_test
           POSTGRES_PASSWORD: ""
     steps:
+      - node/install
       - checkout
-      - node/install-npm
       - restore_cache:
           key: venv-27-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
@@ -109,6 +108,19 @@ jobs:
             cp django_dialog_engine/.pylintrc .
             pylint django_dialog_engine
             bandit -r .
+      - run:
+          name: Test dialogs (Botium)
+          command: |
+            cd ..
+            cd django/dde
+            pwd
+            ls
+            npm install -g botium-cli botium-core
+            export BOTIUM_JSON_PATH="./django_dialog_engine/botium/botium.json"
+            export BOTIUM_DDE_DIALOG_SCRIPT_PATH="./django_dialog_engine/botium/dialog_scripts/prompt_test.json"
+            export BOTIUM_DDE_DIALOG_USER_ID="circle-ci:tester"
+            export BOTIUM_DDE_DIALOG_ID="circle-ci-test"
+            botium-cli run -c $BOTIUM_JSON_PATH -C django_dialog_engine/botium/convos/prompt_test/ run
       - save_cache:
           key: venv-27-{{ .Branch }}-{{ checksum "/home/circleci/django/dde/django_dialog_engine/requirements.txt" }}
           paths:
