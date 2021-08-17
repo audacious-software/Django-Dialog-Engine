@@ -5,11 +5,13 @@ from __future__ import print_function
 
 from builtins import str # pylint: disable=redefined-builtin
 
+import importlib
 import json
 import os
 
 from future import standard_library
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -25,7 +27,7 @@ class Command(BaseCommand):
         parser.add_argument('dialog_script_path', type=str)
         parser.add_argument('message', type=str)
 
-    def handle(self, *args, **options):
+    def handle(self, *args, **options): # pylint: disable=too-many-branches
         dialog_user_id = options['dialog_user_id']
         dialog_script_path = options['dialog_script_path']
 
@@ -38,9 +40,24 @@ class Command(BaseCommand):
         active_dialog = Dialog.objects.filter(key=key, finished=None).first()
 
         if active_dialog is None:
-            dialog_script = json.load(open(dialog_script_path))
+            for app in settings.INSTALLED_APPS:
+                if active_dialog is None:
+                    try:
+                        app_dialog_api = importlib.import_module(app + '.dialog_api')
 
-            active_dialog = Dialog.objects.create(key=key, dialog_snapshot=dialog_script, started=timezone.now())
+                        active_dialog = app_dialog_api.create_dialog_from_path(dialog_script_path)
+                        active_dialog.key = key
+                        active_dialog.started = timezone.now()
+                        active_dialog.save()
+                    except ImportError:
+                        pass
+                    except AttributeError:
+                        pass
+
+            if active_dialog is None:
+                dialog_script = json.load(open(dialog_script_path))
+
+                active_dialog = Dialog.objects.create(key=key, dialog_snapshot=dialog_script, started=timezone.now())
 
         actions = active_dialog.process(options['message'])
 
