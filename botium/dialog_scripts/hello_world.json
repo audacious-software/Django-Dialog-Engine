@@ -1,0 +1,17 @@
+[{
+	"id": "dialog-start",
+	"type": "begin",
+	"next_id": "echo-1",
+	"builder_group": "Dialog"
+}, {
+	"id": "echo-1",
+	"name": "Hello World",
+	"type": "echo",
+	"message": "Hello World",
+	"next_id": "dialog-end",
+	"builder_group": "Dialog"
+}, {
+	"id": "dialog-end",
+	"type": "end",
+	"builder_group": "Dialog"
+}]

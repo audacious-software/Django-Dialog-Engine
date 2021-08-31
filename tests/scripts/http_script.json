@@ -1,0 +1,79 @@
+[{
+	"id": "dialog-start",
+	"type": "begin",
+	"next_id": "echo-1",
+	"builder_group": "Dialog"
+}, {
+	"id": "echo-1",
+	"name": "Hello World",
+	"type": "echo",
+	"message": "Hello World",
+	"next_id": "get-test-re",
+	"builder_group": "Dialog"
+}, {
+	"id": "dialog-end",
+	"type": "end",
+	"builder_group": "Dialog"
+}, {
+	"id": "get-test-re",
+	"url": "https://postman-echo.com/get",
+	"name": "GET Test (RE)",
+	"type": "http-response",
+	"method": "GET",
+	"actions": [{
+		"action": "get-success-re",
+		"pattern": "world testing"
+	}],
+	"headers": ["X-Example-Header=hello world"],
+	"no_match": "get-failed-re",
+	"parameters": ["hello=world testing"],
+	"builder_group": "RE",
+	"pattern_matcher": "re"
+}, {
+	"id": "get-success-re",
+	"name": "GET Successful (RE)",
+	"type": "echo",
+	"context": "(Context goes here...)",
+	"message": "GET request was successful",
+	"next_id": "get-test-jsonpath",
+	"builder_group": "RE"
+}, {
+	"id": "get-failed-re",
+	"name": "GET Failed (RE)",
+	"type": "echo",
+	"context": "(Context goes here...)",
+	"message": "GET request failed",
+	"next_id": "get-test-jsonpath",
+	"builder_group": "RE"
+}, {
+	"id": "get-test-jsonpath",
+	"url": "https://postman-echo.com/get",
+	"name": "GET Test (JSONPath)",
+	"type": "http-response",
+	"method": "GET",
+	"actions": [{
+		"action": "get-success-jsonpath",
+		"pattern": "$.args[?(@ = 'foobaz')]"
+	}],
+	"headers": ["X-Example-Header=hello world"],
+	"no_match": "get-failed-jsonpath",
+	"parameters": ["foobar=foobaz"],
+	"builder_group": "JSONPath",
+	"pattern_matcher": "jsonpath"
+}, {
+	"id": "get-success-jsonpath",
+	"name": "GET Successful (JSONPath)",
+	"type": "echo",
+	"context": "(Context goes here...)",
+	"message": "Request Successful",
+	"next_id": "dialog-end",
+	"builder_group": "JSONPath"
+}, {
+	"id": "get-failed-jsonpath",
+	"name": "GET Failed (JSONPath)",
+	"type": "echo",
+	"context": "(Context goes here...)",
+	"message": "Request failed",
+	"next_id": "dialog-end",
+	"builder_group": "JSONPath"
+}]

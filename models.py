@@ -160,7 +160,7 @@ class Dialog(models.Model):
 
         last_transition = self.transitions.order_by('-when').first()
 
-        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata)
+        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata, django_object=self)
 
         if last_transition is not None:
             dialog_machine.advance_to(last_transition.state_id)
@@ -217,6 +217,14 @@ class Dialog(models.Model):
 
         return new_transition.actions()
 
+    def current_state_id(self):
+        last_transition = self.transitions.order_by('-when').first()
+
+        if last_transition is not None:
+            return last_transition.state_id
+
+        return None
+
     def available_actions(self):
         actions = []
 
@@ -234,6 +242,68 @@ class Dialog(models.Model):
                     actions.extend(action['choices'])
 
         return actions
+
+    def prior_transitions(self, new_state_id, prior_state_id, reason=None):
+        transitions = []
+
+        for transition in self.transitions.filter(state_id=new_state_id, prior_state_id=prior_state_id):
+            if reason is None or transition.metadata['reason'] == reason:
+                transitions.append(transition)
+
+        return transitions
+
+    def get_value(self, key):
+        if 'values' in self.metadata:
+            if key in self.metadata['values']:
+                return self.metadata['values'][key]
+
+        return None
+
+    def put_value(self, key, value):
+        if ('values' in self.metadata) is False:
+            self.metadata['values'] = {}
+
+        if value is None and key in self.metadata['values']:
+            del self.metadata['values'][key]
+        else:
+            self.metadata['values'][key] = value
+
+        self.save()
+
+    def pop_value(self, key):
+        value = self.get_value(key)
+
+        if value is None: # pylint: disable=no-else-return
+            return None
+        elif isinstance(value, (list,)):
+            if len(value) > 0: # pylint: disable=len-as-condition
+                new_value = value.pop()
+
+                self.put_value(key, value)
+
+                return new_value
+
+            return None
+        else:
+            del self.metadata['values'][key]
+            self.save()
+
+        return value
+
+    def push_value(self, key, value):
+        list_value = self.get_value(key)
+
+        if list_value is None:
+            list_value = []
+        elif isinstance(list_value, (list,)) is False:
+            list_value = [list_value]
+
+        if isinstance(value, (list,)):
+            list_value.extend(value)
+        else:
+            list_value.append(value)
+
+        self.put_value(key, list_value)
 
 
 @python_2_unicode_compatible

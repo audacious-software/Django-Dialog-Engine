@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long, useless-object-inheritance, super-with-arguments
+# pylint: disable=line-too-long, useless-object-inheritance, super-with-arguments, too-many-lines
 
 from builtins import str # pylint: disable=redefined-builtin
 from builtins import object # pylint: disable=redefined-builtin
@@ -9,6 +9,13 @@ import logging
 import re
 import sys
 import uuid
+import traceback
+
+import lxml # nosec
+import numpy
+import requests
+
+from jsonpath_ng.ext import parse as jsonpath_ng_parse
 
 from django.conf import settings
 from django.utils import timezone
@@ -29,22 +36,23 @@ def fetch_default_logger():
 
     return logger
 
-
 class DialogError(Exception):
     pass
 
 class MissingNextDialogNodeError(DialogError):
     def __init__(self, message, container, key):
-        super(DialogError, self).__init__(message) # pylint: disable=bad-super-call)
+        super(DialogError, self).__init__(message) # pylint: disable=bad-super-call
 
         self.container = container
         self.key = key
 
 class DialogMachine(object):
-    def __init__(self, definition, metadata=None):
+    def __init__(self, definition, metadata=None, django_object=None):
         self.all_nodes = {}
         self.current_node = None
         self.start_node = None
+
+        self.django_object = django_object
 
         if metadata is None:
             metadata = {}
@@ -96,7 +104,7 @@ class DialogMachine(object):
         except KeyError:
             pass # Cannot continue - stay in same place.
 
-    def evaluate(self, response=None, last_transition=None, extras=None, logger=None):
+    def evaluate(self, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-branches
         if extras is None:
             extras = {}
 
@@ -105,6 +113,22 @@ class DialogMachine(object):
 
         if self.current_node is None:
             return None
+
+        if response is not None:
+            for key in self.all_nodes:
+                node = self.all_nodes[key]
+
+                if isinstance(node, (Interrupt,)):
+                    pattern_matched = node.matches(response)
+                    if pattern_matched is not None:
+                        transition = DialogTransition(new_state_id=node.node_id)
+
+                        transition.metadata['reason'] = 'interrupt'
+                        transition.metadata['pattern'] = 'pattern_matched'
+                        transition.metadata['response'] = response
+                        transition.metadata['actions'] = []
+
+                        return transition
 
         transition = self.current_node.evaluate(self, response, last_transition, extras, logger)
 
@@ -115,7 +139,7 @@ class DialogMachine(object):
                 else:
                     transition.metadata['actions'] = transition.metadata['exit_actions']
 
-                transition.metadata['actions'] += self.all_nodes[transition.new_state_id].actions()
+                transition.metadata['actions'] += self.actions_for_state(transition.new_state_id)
 
                 if transition.metadata['actions']:
                     pass
@@ -123,6 +147,30 @@ class DialogMachine(object):
                     transition.metadata['actions'] = None
 
         return transition
+
+    def prior_transitions(self, new_state_id, prior_state_id, reason=None):
+        if self.django_object is not None:
+            return self.django_object.prior_transitions(new_state_id, prior_state_id, reason)
+
+        return []
+
+    def pop_value(self, key):
+        if self.django_object is not None:
+            return self.django_object.pop_value(key)
+
+        return None
+
+    def push_value(self, key, value):
+        if self.django_object is not None:
+            self.django_object.push_value(key, value)
+
+    def actions_for_state(self, state_id):
+        actions = self.all_nodes[state_id].actions()
+
+        if actions is None:
+            actions = []
+
+        return actions
 
 class DialogTransition(object): # pylint: disable=too-few-public-methods
     def __init__(self, new_state_id, metadata=None):
@@ -192,6 +240,7 @@ class Prompt(BaseNode):
 
         if logger is None:
             logger = fetch_default_logger()
+
 
         if response is None and last_transition is not None and self.timeout_node_id is not None:
             now = timezone.now()
@@ -466,7 +515,7 @@ class LoopAction(BaseNode):
         if last_transition is not None:
             loop_count = last_transition.dialog.transitions.filter(state_id=self.node_id).count()
 
-        if loop_count <= self.iterations:
+        if loop_count < self.iterations:
             transition = DialogTransition(new_state_id=self.loop_node_id)
 
             transition.metadata['reason'] = 'next-loop'
@@ -485,6 +534,22 @@ class LoopAction(BaseNode):
 
     def actions(self):
         return[]
+
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'loop':
+            if ('next_id' in dialog_def) is False:
+                raise DialogError('next_id missing in: ' + json.dumps(dialog_def, indent=2))
+
+            if ('loop_id' in dialog_def) is False:
+                raise DialogError('loop_id missing in: ' + json.dumps(dialog_def, indent=2))
+
+            if ('iterations' in dialog_def) is False:
+                raise DialogError('iterations missing in: ' + json.dumps(dialog_def, indent=2))
+
+            return LoopAction(dialog_def['id'], dialog_def['next_id'], dialog_def['iterations'], dialog_def['loop_id'])
+
+        return None
 
 class WhileAction(BaseNode):
     def __init__(self, action_id, action_type, test, actions):
@@ -588,6 +653,9 @@ class BranchingPrompt(BaseNode):
             if 'timeout' in dialog_def:
                 prompt_node.timeout = dialog_def['timeout']
 
+            if 'timeout_iterations' in dialog_def:
+                prompt_node.timeout_iterations = dialog_def['timeout_iterations']
+
             if 'timeout_node_id' in dialog_def:
                 prompt_node.timeout_node_id = dialog_def['timeout_node_id']
 
@@ -596,7 +664,7 @@ class BranchingPrompt(BaseNode):
 
         return None
 
-    def __init__(self, node_id, actions, prompt, invalid_response_node_id=None, timeout=300, timeout_node_id=None): # pylint: disable=too-many-arguments
+    def __init__(self, node_id, actions, prompt, invalid_response_node_id=None, timeout=300, timeout_node_id=None, timeout_iterations=None): # pylint: disable=too-many-arguments
         super(BranchingPrompt, self).__init__(node_id, node_id)
 
         self.prompt = prompt
@@ -610,8 +678,9 @@ class BranchingPrompt(BaseNode):
 
         self.timeout = timeout
         self.timeout_node_id = timeout_node_id
+        self.timeout_iterations = timeout_iterations
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches
         if extras is None:
             extras = {}
 
@@ -655,12 +724,24 @@ class BranchingPrompt(BaseNode):
             now = timezone.now()
 
             if (now - last_transition.when).total_seconds() > self.timeout:
-                transition = DialogTransition(new_state_id=self.timeout_node_id)
+                can_timeout = True
 
-                transition.metadata['reason'] = 'timeout'
-                transition.metadata['timeout_duration'] = self.timeout
+                if self.timeout_iterations is not None:
+                    prior_timeouts = dialog.prior_transitions(new_state_id=self.timeout_node_id, prior_state_id=self.node_id, reason='timeout')
 
-                return transition
+                    if len(prior_timeouts) >= self.timeout_iterations:
+                        can_timeout = False
+
+                if can_timeout:
+                    transition = DialogTransition(new_state_id=self.timeout_node_id)
+                    transition.refresh = True
+
+                    transition.metadata['reason'] = 'timeout'
+                    transition.metadata['timeout_duration'] = self.timeout
+
+                    return transition
+
+                return None
 
         if last_transition is not None:
             if last_transition.state_id != self.node_id:
@@ -768,3 +849,319 @@ class ExternalChoice(BaseNode):
             })
 
         return [available_choices]
+
+class RandomBranch(BaseNode):
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'random-branch':
+            branch_node = RandomBranch(dialog_def['id'], dialog_def['actions'])
+
+            return branch_node
+
+        return None
+
+    def __init__(self, node_id, actions):
+        super(RandomBranch, self).__init__(node_id, node_id)
+
+        if actions is None:
+            self.random_actions = []
+        else:
+            self.random_actions = actions
+
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+        choices = []
+        weights = []
+
+        for action in self.random_actions:
+            choices.append(action['action'])
+            weights.append(action['weight'])
+
+        chosen = numpy.random.choice(choices, p=weights)
+
+        transition = DialogTransition(new_state_id=chosen)
+
+        transition.metadata['reason'] = 'random-branch'
+
+        return transition
+
+    def actions(self):
+        return []
+
+class Interrupt(BaseNode):
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'interrupt':
+            interrupt_node = Interrupt(dialog_def['id'], dialog_def['match_patterns'], dialog_def['next_id'])
+
+            return interrupt_node
+
+        return None
+
+    def __init__(self, node_id, match_patterns, next_node_id):
+        super(Interrupt, self).__init__(node_id, next_node_id)
+
+        if match_patterns is None:
+            self.match_patterns = []
+        else:
+            self.match_patterns = match_patterns
+
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+        if extras is None:
+            extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
+
+        dialog.push_value('django_dialog_engine_interrupt_node_stack', last_transition.prior_state_id)
+
+        transition = DialogTransition(new_state_id=self.next_node_id)
+
+        transition.metadata['reason'] = 'interrupt-continue'
+
+        return transition
+
+    def actions(self):
+        return []
+
+    def matches(self, response):
+        if response is None:
+            return None
+
+        for match_pattern in self.match_patterns:
+            if re.search(match_pattern, response) is not None:
+                return match_pattern
+
+        return None
+
+class InterruptResume(BaseNode):
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'interrupt-resume':
+            interrupt_resume_node = InterruptResume(dialog_def['id'], dialog_def['force_top'])
+
+            return interrupt_resume_node
+
+        return None
+
+    def __init__(self, node_id, force_top):
+        super(InterruptResume, self).__init__(node_id, node_id)
+
+        if force_top is None:
+            self.force_top = False
+        else:
+            self.force_top = force_top
+
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+        if extras is None:
+            extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
+
+        next_node_id = dialog.pop_value('django_dialog_engine_interrupt_node_stack')
+
+        if self.force_top:
+            next_value = dialog.pop_value('django_dialog_engine_interrupt_node_stack')
+
+            while next_value is not None:
+                next_node_id = next_value
+
+                next_value = dialog.pop_value('django_dialog_engine_interrupt_node_stack')
+
+        transition = DialogTransition(new_state_id=next_node_id)
+
+        transition.metadata['reason'] = 'interrupt-resume'
+        transition.metadata['force_top'] = self.force_top
+
+        return transition
+
+    def actions(self):
+        return []
+
+
+class HttpResponseBranch(BaseNode): # pylint: disable=too-many-instance-attributes
+    @staticmethod
+    def parse(dialog_def): # pylint: disable=too-many-branches
+        if dialog_def['type'] == 'http-response':
+            prompt_node = HttpResponseBranch(dialog_def['id'], dialog_def['url'], dialog_def['actions'])
+
+            if 'no_match' in dialog_def:
+                prompt_node.invalid_response_node_id = dialog_def['no_match']
+
+            if 'timeout' in dialog_def:
+                prompt_node.timeout = dialog_def['timeout']
+
+            if 'timeout_iterations' in dialog_def:
+                prompt_node.timeout_iterations = dialog_def['timeout_iterations']
+
+            if 'timeout_node_id' in dialog_def:
+                prompt_node.timeout_node_id = dialog_def['timeout_node_id']
+
+            if 'method' in dialog_def:
+                prompt_node.method = dialog_def['method']
+            else:
+                prompt_node.method = 'GET'
+
+            if 'headers' in dialog_def:
+                prompt_node.headers = dialog_def['headers']
+            else:
+                prompt_node.headers = []
+
+            if 'parameters' in dialog_def:
+                prompt_node.parameters = dialog_def['parameters']
+            else:
+                prompt_node.parameters = []
+
+            if 'pattern_matcher' in dialog_def:
+                prompt_node.pattern_matcher = dialog_def['pattern_matcher']
+            else:
+                prompt_node.pattern_matcher = 're'
+
+            return prompt_node
+
+        return None
+
+    def __init__(self, node_id, url, actions, invalid_response_node_id=None, timeout=300, timeout_node_id=None, timeout_iterations=None, method='GET', headers=None, parameters=None, pattern_matcher='re'): # pylint: disable=too-many-arguments
+        super(HttpResponseBranch, self).__init__(node_id, node_id)
+
+        if headers is None:
+            headers = []
+
+        if parameters is None:
+            parameters = []
+
+        self.url = url
+
+        self.invalid_response_node_id = invalid_response_node_id
+
+        if actions is None:
+            self.pattern_actions = []
+        else:
+            self.pattern_actions = actions
+
+        self.timeout = timeout
+        self.timeout_node_id = timeout_node_id
+        self.timeout_iterations = timeout_iterations
+
+        self.method = method
+        self.headers = headers
+        self.parameters = parameters
+        self.pattern_matcher = pattern_matcher
+
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches, too-many-locals, too-many-statements
+        if extras is None:
+            extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
+
+        parameters = {}
+
+        for param in self.parameters:
+            tokens = param.split('=', 1)
+
+            if len(tokens) > 1:
+                parameters[tokens[0]] = tokens[1]
+
+        headers = {
+            'User-Agent': 'Django Dialog Engine'
+        }
+
+        for header in self.headers:
+            tokens = header.split('=', 1)
+
+            if len(tokens) > 1:
+                headers[tokens[0]] = tokens[1]
+
+        response = None
+
+        try:
+            if self.method == 'POST':
+                if self.timeout_node_id is not None:
+                    response = requests.post(self.url, headers=headers, data=parameters, timeout=self.timeout)
+                else:
+                    response = requests.post(self.url, headers=headers, data=parameters)
+            else:
+                if self.timeout_node_id is not None:
+                    response = requests.get(self.url, headers=headers, data=parameters, timeout=self.timeout)
+                else:
+                    response = requests.get(self.url, headers=headers, data=parameters)
+
+            if response.status_code >= 200 and response.status_code < 300: # Valid response
+                matched_action = None
+
+                if self.pattern_matcher == 're':
+                    for action in self.pattern_actions:
+                        if re.search(action['pattern'], response.text) is not None:
+                            matched_action = action
+
+                elif self.pattern_matcher == 'jsonpath':
+                    for action in self.pattern_actions:
+                        parser = jsonpath_ng_parse(action['pattern'])
+
+                        matches = list(parser.find(response.json()))
+
+                        if len(matches) > 0: # pylint: disable=len-as-condition
+                            matched_action = action
+
+                elif self.pattern_matcher == 'xpath':
+                    for action in self.pattern_actions:
+                        tree = lxml.html.fromstring(response.content)
+
+                        matches = tree.xpath(action['pattern'])
+
+                        if matches:
+                            matched_action = action
+
+                if matched_action is not None:
+                    transition = DialogTransition(new_state_id=matched_action['action'])
+
+                    transition.metadata['reason'] = 'valid-response'
+                    transition.metadata['url'] = self.url
+                    transition.metadata['method'] = self.method
+                    transition.metadata['parameters'] = parameters
+                    transition.metadata['headers'] = headers
+                    transition.metadata['http-status-code'] = response.status_code
+                    transition.metadata['response'] = response.text
+                    transition.metadata['actions'] = self.pattern_actions
+
+                    return transition
+
+            if self.invalid_response_node_id is not None:
+                transition = DialogTransition(new_state_id=self.invalid_response_node_id)
+
+                transition.metadata['reason'] = 'no-match'
+                transition.metadata['url'] = self.url
+                transition.metadata['method'] = self.method
+                transition.metadata['parameters'] = parameters
+                transition.metadata['headers'] = headers
+                transition.metadata['http-status-code'] = response.status_code
+                transition.metadata['response'] = response.text
+                transition.metadata['actions'] = self.pattern_actions
+
+                transition.refresh = True
+
+                return transition
+        except requests.exceptions.Timeout:
+            transition = DialogTransition(new_state_id=self.timeout_node_id)
+            transition.refresh = True
+
+            transition.metadata['reason'] = 'timeout'
+            transition.metadata['timeout_duration'] = self.timeout
+
+            return transition
+        except: # pylint: disable=bare-except
+            traceback.print_exc()
+
+            transition = DialogTransition(new_state_id=self.invalid_response_node_id)
+            transition.refresh = True
+
+            transition.metadata['reason'] = 'error'
+            transition.metadata['error'] = traceback.format_exc()
+
+            return transition
+
+        return None
+
+    def actions(self):
+        return[]
