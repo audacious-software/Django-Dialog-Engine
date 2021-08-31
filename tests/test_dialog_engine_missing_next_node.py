@@ -1,21 +1,20 @@
-# pylint: disable=no-member
+# pylint: disable=no-member, line-too-long
 
 import json
 
 from django.test import TestCase
 from django.utils import timezone
 
-from ..dialog import DialogMachine
+from ..dialog import DialogMachine, MISSING_NEXT_NODE_KEY
 from ..models import Dialog
 
 class TestMissingNextNodeCase(TestCase):
     def setUp(self):
-        pass
+        with open('django_dialog_engine/tests/scripts/missing_next_node.json') as definition_file:
+            self.test_def = json.load(definition_file)
 
     def test_test_missing_next_node(self):
-        test_def = json.load('django_dialog_engine/tests/scripts/missing_next_node.json')
-
-        machine = DialogMachine(test_def, {})
+        machine = DialogMachine(self.test_def, {})
 
         self.assertIn('hello', machine.all_nodes)
 
@@ -23,9 +22,9 @@ class TestMissingNextNodeCase(TestCase):
 
         self.assertIsNot(hello_node.next_node_id, None)
 
-        self.assertEqual(len(hello_node.next_node_id), 36)
+        self.assertEqual(hello_node.next_node_id, MISSING_NEXT_NODE_KEY)
 
-        dialog = Dialog.objects.create(key='missing-node', dialog_snapshot=test_def, started=timezone.now())
+        dialog = Dialog.objects.create(key='missing-node', dialog_snapshot=self.test_def, started=timezone.now())
 
         dialog.process(None)
         dialog.process(None)

@@ -3,6 +3,8 @@
 from builtins import str # pylint: disable=redefined-builtin
 from builtins import object # pylint: disable=redefined-builtin
 
+
+import copy
 import importlib
 import json
 import logging
@@ -10,6 +12,8 @@ import re
 import sys
 import uuid
 import traceback
+
+from past.builtins import basestring # pylint: disable=redefined-builtin
 
 import lxml # nosec
 import numpy
@@ -21,7 +25,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.encoding import smart_str
 
-from past.builtins import basestring # pylint: disable=redefined-builtin
+MISSING_NEXT_NODE_KEY = 'django-dialog-engine-missing-next-node-end'
 
 def fetch_default_logger():
     logger = logging.getLogger('django-dialog-engine')
@@ -48,6 +52,8 @@ class MissingNextDialogNodeError(DialogError):
 
 class DialogMachine(object):
     def __init__(self, definition, metadata=None, django_object=None):
+        definition = copy.deepcopy(definition)
+
         self.all_nodes = {}
         self.current_node = None
         self.start_node = None
@@ -77,16 +83,17 @@ class DialogMachine(object):
                     except MissingNextDialogNodeError as missing_node:
                         # Automatically add end nodes to dangling node pointers
 
-                        end_node_def = {
-                            'type': 'end',
-                            'id': str(uuid.uuid4())
-                        }
+                        if ('' in self.all_nodes) is False:
+                            end_node_def = {
+                                'type': 'end',
+                                'id': MISSING_NEXT_NODE_KEY
+                            }
 
-                        end_node = End.parse(end_node_def)
+                            end_node = End.parse(end_node_def)
 
-                        self.all_nodes[end_node.node_id] = end_node
+                            self.all_nodes[end_node.node_id] = end_node
 
-                        missing_node.container[missing_node.key] = end_node.node_id
+                        missing_node.container[missing_node.key] = MISSING_NEXT_NODE_KEY
 
                         node = cls.parse(node_def)
 
