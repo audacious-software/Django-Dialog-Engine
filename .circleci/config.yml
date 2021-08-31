@@ -26,15 +26,12 @@ jobs:
       - node/install
       - checkout
       - restore_cache:
-          key: venv-38-{{ .Branch }}-{{ checksum "requirements.txt" }}-s
+          key: venv-38-{{ .Branch }}-{{ checksum "requirements.txt" }}-v1
       - run:
           name: Build and validate
           command: |
-            which python
-            python -m venv /home/circleci/venv
-            echo "--"
+            python -m venv --copies /home/circleci/venv
             . /home/circleci/venv/bin/activate
-            which python
             pip install -r requirements.txt --progress-bar off
             cd ..
             mv project django_dialog_engine
@@ -88,11 +85,11 @@ jobs:
       - node/install
       - checkout
       - restore_cache:
-          key: venv-27-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: venv-27-{{ .Branch }}-{{ checksum "requirements.txt" }}-v1
       - run:
           name: Build and validate
           command: |
-            virtualenv /home/circleci/venv
+            virtualenv --copies /home/circleci/venv
             . /home/circleci/venv/bin/activate
             pip install -r requirements.txt --progress-bar off
             cd ..
