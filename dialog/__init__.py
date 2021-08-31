@@ -8,6 +8,7 @@ import json
 import logging
 import re
 import sys
+import uuid
 
 from django.conf import settings
 from django.utils import timezone
@@ -31,6 +32,13 @@ def fetch_default_logger():
 
 class DialogError(Exception):
     pass
+
+class MissingNextDialogNodeError(DialogError):
+    def __init__(self, message, container, key):
+        super(DialogError, self).__init__(message) # pylint: disable=bad-super-call)
+
+        self.container = container
+        self.key = key
 
 class DialogMachine(object):
     def __init__(self, definition, metadata=None):
@@ -56,7 +64,23 @@ class DialogMachine(object):
 
             for cls in BaseNode.__subclasses__():
                 if node is None:
-                    node = cls.parse(node_def)
+                    try:
+                        node = cls.parse(node_def)
+                    except MissingNextDialogNodeError as missing_node:
+                        # Automatically add end nodes to dangling node pointers
+
+                        end_node_def = {
+                            'type': 'end',
+                            'id': str(uuid.uuid4())
+                        }
+
+                        end_node = End.parse(end_node_def)
+
+                        self.all_nodes[end_node.node_id] = end_node
+
+                        missing_node.container[missing_node.key] = end_node.node_id
+
+                        node = cls.parse(node_def)
 
             if node is None:
                 raise DialogError('Unable to parse node definition: ' + json.dumps(node_def, indent=2))
@@ -237,7 +261,7 @@ class Echo(BaseNode):
     def parse(dialog_def):
         if dialog_def['type'] == 'echo':
             if ('next_id' in dialog_def) is False:
-                raise DialogError('next_id missing in: ' + json.dumps(dialog_def, indent=2))
+                raise MissingNextDialogNodeError('next_id missing in: ' + json.dumps(dialog_def, indent=2), dialog_def, 'next_id')
 
             return Echo(dialog_def['id'], dialog_def['next_id'], dialog_def['message'])
 
