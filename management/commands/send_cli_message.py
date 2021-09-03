@@ -42,11 +42,7 @@ def process(dialog, message, extras=None):
                 pass
 
     if processed is False:
-        print('OGP 1: ' + str(message), file=sys.stderr)
-
         actions = dialog.process(message, extras=extras)
-
-        print('OGP 1: ' + str(message), file=sys.stderr)
 
         if actions is None:
             actions = []
@@ -54,7 +50,6 @@ def process(dialog, message, extras=None):
         for action in actions:
             if action['type'] == 'echo':
                 print(action['message'])
-                print('ECHO: ' + action['message'], file=sys.stderr)
 
 
 class Command(BaseCommand):
@@ -114,13 +109,9 @@ class Command(BaseCommand):
 
         nudge_transition = active_dialog.transitions.order_by('-when').first()
 
-        print('TRANS: ' + str(active_dialog) + ' -- ' + str(nudge_transition), file=sys.stderr)
-
         while nudge_transition.pk != last_transition.pk:
             last_transition = nudge_transition
 
             process(active_dialog, None, extras=extras)
 
             nudge_transition = active_dialog.transitions.order_by('-when').first()
-
-            print('TRANS: ' + str(active_dialog) + ' -- ' + str(nudge_transition), file=sys.stderr)
