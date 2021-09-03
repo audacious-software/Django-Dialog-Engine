@@ -215,7 +215,21 @@ class Dialog(models.Model):
 
         new_transition.save()
 
-        return new_transition.actions()
+        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata)
+
+        dialog_machine.advance_to(new_transition.state_id)
+
+        actions = dialog_machine.current_node.actions()
+
+        if actions is None:
+            actions = []
+
+        new_actions = new_transition.actions()
+
+        if new_actions is not None:
+            actions.extend(new_actions)
+
+        return actions
 
     def current_state_id(self):
         last_transition = self.transitions.order_by('-when').first()

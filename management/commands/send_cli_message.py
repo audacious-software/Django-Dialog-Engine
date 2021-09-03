@@ -7,17 +7,55 @@ from builtins import str # pylint: disable=redefined-builtin
 
 import importlib
 import json
+import logging
 import os
+import sys
 
 from future import standard_library
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from django.utils.text import slugify
 
 from ...models import Dialog
 
 standard_library.install_aliases()
+
+def process(dialog, message, extras=None):
+    if extras is None:
+        extras = {}
+
+    processed = False
+
+    for app in settings.INSTALLED_APPS:
+        if processed is False:
+            try:
+                app_dialog_api = importlib.import_module(app + '.dialog_api')
+
+                app_dialog_api.process(dialog, message, extras=extras)
+
+                processed = True
+            except ImportError:
+                pass
+            except AttributeError:
+                pass
+
+    if processed is False:
+        print('OGP 1: ' + str(message), file=sys.stderr)
+
+        actions = dialog.process(message, extras=extras)
+
+        print('OGP 1: ' + str(message), file=sys.stderr)
+
+        if actions is None:
+            actions = []
+
+        for action in actions:
+            if action['type'] == 'echo':
+                print(action['message'])
+                print('ECHO: ' + action['message'], file=sys.stderr)
+
 
 class Command(BaseCommand):
     help = 'Creates a new dialog from a provided JSON definition and executes it via the command line interface'
@@ -31,9 +69,18 @@ class Command(BaseCommand):
         dialog_user_id = options['dialog_user_id']
         dialog_script_path = options['dialog_script_path']
 
+        logging.getLogger('db').setLevel(logging.ERROR)
+
+        extras = {}
+
+        try:
+            extras = settings.DDE_BOTIUM_EXTRAS(dialog_user_id)
+        except AttributeError:
+            pass
+
         filename = os.path.basename(os.path.normpath(dialog_script_path))
 
-        key = filename + '-' + dialog_user_id
+        key = slugify(filename + '-' + dialog_user_id)
 
         active_dialog = None
 
@@ -45,7 +92,7 @@ class Command(BaseCommand):
                     try:
                         app_dialog_api = importlib.import_module(app + '.dialog_api')
 
-                        active_dialog = app_dialog_api.create_dialog_from_path(dialog_script_path)
+                        active_dialog = app_dialog_api.create_dialog_from_path(dialog_script_path, dialog_key=key)
                         active_dialog.key = key
                         active_dialog.started = timezone.now()
                         active_dialog.save()
@@ -59,38 +106,21 @@ class Command(BaseCommand):
 
                 active_dialog = Dialog.objects.create(key=key, dialog_snapshot=dialog_script, started=timezone.now())
 
-        actions = active_dialog.process(options['message'])
-
-        if actions is None:
-            actions = []
-
-        for action in actions:
-            if action['type'] == 'echo':
-                print(action['message'])
+        process(active_dialog, options['message'], extras=extras)
 
         last_transition = active_dialog.transitions.order_by('-when').first()
 
-        actions = active_dialog.process(None)
-
-        if actions is None:
-            actions = []
-
-        for action in actions:
-            if action['type'] == 'echo':
-                print(action['message'])
+        process(active_dialog, None, extras=extras)
 
         nudge_transition = active_dialog.transitions.order_by('-when').first()
+
+        print('TRANS: ' + str(active_dialog) + ' -- ' + str(nudge_transition), file=sys.stderr)
 
         while nudge_transition.pk != last_transition.pk:
             last_transition = nudge_transition
 
-            actions = active_dialog.process(None)
-
-            if actions is None:
-                actions = []
-
-            for action in actions:
-                if action['type'] == 'echo':
-                    print(action['message'])
+            process(active_dialog, None, extras=extras)
 
             nudge_transition = active_dialog.transitions.order_by('-when').first()
+
+            print('TRANS: ' + str(active_dialog) + ' -- ' + str(nudge_transition), file=sys.stderr)
