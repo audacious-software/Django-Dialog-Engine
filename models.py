@@ -151,8 +151,10 @@ class Dialog(models.Model):
         if extras is None:
             extras = {}
 
+        actions = []
+
         if self.finished is not None:
-            return []
+            return actions
 
         if self.dialog_snapshot is None:
             self.dialog_snapshot = self.script.definition
@@ -177,7 +179,7 @@ class Dialog(models.Model):
         if transition is None:
             pass # Nothing to do
         elif last_transition is None or last_transition.state_id != transition.new_state_id or transition.refresh is True:
-            actions = []
+            new_actions = []
 
             if transition.new_state_id is None:
                 self.finished = timezone.now()
@@ -194,13 +196,16 @@ class Dialog(models.Model):
 
                 new_transition.save()
 
-                actions = new_transition.actions()
+                new_actions = new_transition.actions()
 
-            actions = apply_template(actions, self.metadata)
+                if new_actions is None:
+                    new_actions = []
 
-            return actions
+            new_actions = apply_template(new_actions, self.metadata)
 
-        return []
+            actions.extend(new_actions)
+
+        return actions
 
     def advance_to(self, state_id):
         last_transition = self.transitions.order_by('-when').first()
