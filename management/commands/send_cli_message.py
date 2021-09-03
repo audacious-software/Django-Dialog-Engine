@@ -9,7 +9,6 @@ import importlib
 import json
 import logging
 import os
-import sys
 
 from future import standard_library
 
