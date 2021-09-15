@@ -80,7 +80,7 @@ class DialogScript(models.Model):
         return mark_safe(json.dumps(self.definition))
 
     def __str__(self):
-        return self.name
+        return self.name # pylint: disable=invalid-str-returned
 
     def get_absolute_url(self):
         try:
