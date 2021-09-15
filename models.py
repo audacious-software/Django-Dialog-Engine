@@ -80,7 +80,7 @@ class DialogScript(models.Model):
         return mark_safe(json.dumps(self.definition))
 
     def __str__(self):
-        return str(self.name)
+        return self.name
 
     def get_absolute_url(self):
         try:
@@ -125,7 +125,7 @@ class Dialog(models.Model):
 
     def __str__(self):
         if self.script is not None:
-            return str(self.script)
+            return self.script.name
 
         return 'dialog-' + str(self.pk)
 
