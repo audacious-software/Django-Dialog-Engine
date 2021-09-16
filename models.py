@@ -109,6 +109,10 @@ class DialogScript(models.Model):
 
         return None
 
+    def dialog_machine(self):
+        return DialogMachine(self.definition, {})
+
+
 @python_2_unicode_compatible
 class Dialog(models.Model):
     key = models.CharField(null=True, blank=True, max_length=128)

@@ -66,6 +66,9 @@ class DialogMachine(object):
                 if node is None:
                     node = cls.parse(node_def)
 
+                    if node is not None and 'name' in node_def:
+                        node.node_name = node_def['name']
+
             if node is None:
                 raise DialogError('Unable to parse node definition: ' + json.dumps(node_def, indent=2))
 
@@ -148,6 +151,17 @@ class DialogMachine(object):
 
         return actions
 
+    def nodes(self):
+        nodes = []
+
+        for node in self.all_nodes.values():
+            nodes.append(node)
+
+        return nodes
+
+    def fetch_node(self, node_id):
+        return self.all_nodes.get(node_id, None)
+
 class DialogTransition(object): # pylint: disable=too-few-public-methods
     def __init__(self, new_state_id, metadata=None):
         self.new_state_id = new_state_id
@@ -164,6 +178,8 @@ class BaseNode(object):
         self.node_id = node_id
         self.next_node_id = next_node_id
 
+        self.node_name = node_id
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=unused-argument, too-many-arguments
         raise DialogError('Unimplemented method: evaluate. Class: ' + self.__class__.__name__)
 
@@ -173,6 +189,17 @@ class BaseNode(object):
     @staticmethod
     def parse(dialog_def): # pylint: disable=unused-argument
         return None
+
+    def next_nodes(self):
+        nodes = []
+
+        if self.next_node_id is not None:
+            nodes.append((self.next_node_id, 'Next Node'))
+
+        return nodes
+
+    def node_type(self): # pylint: disable=no-self-use
+        return 'node'
 
 class Prompt(BaseNode):
     @staticmethod
@@ -209,6 +236,9 @@ class Prompt(BaseNode):
             self.valid_patterns = []
         else:
             self.valid_patterns = valid_patterns
+
+    def node_type(self):
+        return 'prompt'
 
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
@@ -297,6 +327,9 @@ class Echo(BaseNode):
 
         self.message = message
 
+    def node_type(self):
+        return 'echo'
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
@@ -324,6 +357,9 @@ class End(BaseNode):
 
         return None
 
+    def node_type(self):
+        return 'end'
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
@@ -340,6 +376,9 @@ class End(BaseNode):
     def actions(self):
         return []
 
+    def next_nodes(self):
+        return []
+
 class Begin(BaseNode):
     @staticmethod
     def parse(dialog_def):
@@ -347,6 +386,9 @@ class Begin(BaseNode):
             return Begin(dialog_def['id'], dialog_def['next_id'])
 
         return None
+
+    def node_type(self):
+        return 'begin'
 
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
@@ -376,6 +418,9 @@ class Pause(BaseNode):
         super(Pause, self).__init__(node_id, next_node_id)
 
         self.duration = duration
+
+    def node_type(self):
+        return 'pause'
 
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
@@ -415,6 +460,9 @@ class If(BaseNode):
 
         self.all_true = all_true
         self.false_id = false_id
+
+    def node_type(self):
+        return 'if'
 
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-branches, too-many-arguments
         if extras is None:
@@ -511,6 +559,9 @@ class LoopAction(BaseNode):
     def actions(self):
         return[]
 
+    def node_type(self):
+        return 'loop'
+
     @staticmethod
     def parse(dialog_def):
         if dialog_def['type'] == 'loop':
@@ -534,6 +585,9 @@ class WhileAction(BaseNode):
         self.test = test
         self.actions = actions
 
+    def node_type(self):
+        return 'while'
+
 class CustomNode(BaseNode):
     @staticmethod
     def parse(dialog_def):
@@ -548,6 +602,9 @@ class CustomNode(BaseNode):
         self.definition = definition
         self.evaluate_script = evaluate_script
         self.actions_script = actions_script
+
+    def node_type(self):
+        return 'custom'
 
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
@@ -635,7 +692,6 @@ class BranchingPrompt(BaseNode):
             if 'timeout_node_id' in dialog_def:
                 prompt_node.timeout_node_id = dialog_def['timeout_node_id']
 
-
             return prompt_node
 
         return None
@@ -655,6 +711,23 @@ class BranchingPrompt(BaseNode):
         self.timeout = timeout
         self.timeout_node_id = timeout_node_id
         self.timeout_iterations = timeout_iterations
+
+    def node_type(self):
+        return 'branch-prompt'
+
+    def next_nodes(self):
+        nodes = []
+
+        if self.invalid_response_node_id is not None:
+            nodes.append((self.invalid_response_node_id, 'Invalid Response'))
+
+        if self.timeout_node_id is not None:
+            nodes.append((self.timeout_node_id, 'Response Timed Out'))
+
+        for pattern_action in self.pattern_actions:
+            nodes.append((pattern_action['action'], 'Response Matched Pattern: ' + pattern_action['pattern']))
+
+        return nodes
 
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches
         if extras is None:
@@ -762,6 +835,9 @@ class ExternalChoice(BaseNode):
         self.timeout = timeout
         self.timeout_node_id = timeout_node_id
 
+    def node_type(self):
+        return 'external-choice'
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
@@ -844,6 +920,9 @@ class RandomBranch(BaseNode):
         else:
             self.random_actions = actions
 
+    def node_type(self):
+        return 'random-branch'
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         choices = []
         weights = []
@@ -880,6 +959,9 @@ class Interrupt(BaseNode):
             self.match_patterns = []
         else:
             self.match_patterns = match_patterns
+
+    def node_type(self):
+        return 'interrupt'
 
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
@@ -927,6 +1009,9 @@ class InterruptResume(BaseNode):
         else:
             self.force_top = force_top
 
+    def node_type(self):
+        return 'interrupt-resume'
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
@@ -952,6 +1037,9 @@ class InterruptResume(BaseNode):
         return transition
 
     def actions(self):
+        return []
+
+    def next_nodes(self):
         return []
 
 
@@ -1023,6 +1111,24 @@ class HttpResponseBranch(BaseNode): # pylint: disable=too-many-instance-attribut
         self.headers = headers
         self.parameters = parameters
         self.pattern_matcher = pattern_matcher
+
+    def next_nodes(self):
+        nodes = []
+
+        if self.invalid_response_node_id is not None:
+            nodes.append((self.invalid_response_node_id, 'Invalid Response'))
+
+        if self.timeout_node_id is not None:
+            nodes.append((self.timeout_node_id, 'Response Timed Out'))
+
+        for pattern_action in self.pattern_actions:
+            nodes.append((pattern_action['action'], 'Response Matched Pattern: ' + pattern_action['pattern']))
+
+        return nodes
+
+
+    def node_type(self):
+        return 'http-response'
 
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches, too-many-locals, too-many-statements
         if extras is None:
