@@ -3,12 +3,17 @@
 from builtins import str # pylint: disable=redefined-builtin
 from builtins import object # pylint: disable=redefined-builtin
 
+
+import copy
 import importlib
 import json
 import logging
 import re
 import sys
+import uuid
 import traceback
+
+from past.builtins import basestring # pylint: disable=redefined-builtin
 
 import lxml # nosec
 import numpy
@@ -20,7 +25,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.encoding import smart_str
 
-from past.builtins import basestring # pylint: disable=redefined-builtin
+MISSING_NEXT_NODE_KEY = 'django-dialog-engine-missing-next-node-end'
 
 def fetch_default_logger():
     logger = logging.getLogger('django-dialog-engine')
@@ -38,8 +43,17 @@ def fetch_default_logger():
 class DialogError(Exception):
     pass
 
+class MissingNextDialogNodeError(DialogError):
+    def __init__(self, message, container, key):
+        super(DialogError, self).__init__(message) # pylint: disable=bad-super-call
+
+        self.container = container
+        self.key = key
+
 class DialogMachine(object):
     def __init__(self, definition, metadata=None, django_object=None):
+        definition = copy.deepcopy(definition)
+
         self.all_nodes = {}
         self.current_node = None
         self.start_node = None
@@ -64,7 +78,24 @@ class DialogMachine(object):
 
             for cls in BaseNode.__subclasses__():
                 if node is None:
-                    node = cls.parse(node_def)
+                    try:
+                        node = cls.parse(node_def)
+                    except MissingNextDialogNodeError as missing_node:
+                        # Automatically add end nodes to dangling node pointers
+
+                        if ('' in self.all_nodes) is False:
+                            end_node_def = {
+                                'type': 'end',
+                                'id': MISSING_NEXT_NODE_KEY
+                            }
+
+                            end_node = End.parse(end_node_def)
+
+                            self.all_nodes[end_node.node_id] = end_node
+
+                        missing_node.container[missing_node.key] = MISSING_NEXT_NODE_KEY
+
+                        node = cls.parse(node_def)
 
                     if node is not None and 'name' in node_def:
                         node.node_name = node_def['name']
@@ -316,7 +347,7 @@ class Echo(BaseNode):
     def parse(dialog_def):
         if dialog_def['type'] == 'echo':
             if ('next_id' in dialog_def) is False:
-                raise DialogError('next_id missing in: ' + json.dumps(dialog_def, indent=2))
+                raise MissingNextDialogNodeError('next_id missing in: ' + json.dumps(dialog_def, indent=2), dialog_def, 'next_id')
 
             return Echo(dialog_def['id'], dialog_def['next_id'], dialog_def['message'])
 
@@ -346,6 +377,41 @@ class Echo(BaseNode):
     def actions(self):
         return[{
             'type': 'echo',
+            'message': self.message
+        }]
+
+class Alert(BaseNode):
+    @staticmethod
+    def parse(dialog_def):
+        if dialog_def['type'] == 'alert':
+            if ('next_id' in dialog_def) is False:
+                raise MissingNextDialogNodeError('next_id missing in: ' + json.dumps(dialog_def, indent=2), dialog_def, 'next_id')
+
+            return Alert(dialog_def['id'], dialog_def['next_id'], dialog_def['message'])
+
+        return None
+
+    def __init__(self, node_id, next_node_id, message):
+        super(Alert, self).__init__(node_id, next_node_id)
+
+        self.message = message
+
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+        if extras is None:
+            extras = {}
+
+        if logger is None:
+            logger = fetch_default_logger()
+
+        transition = DialogTransition(new_state_id=self.next_node_id)
+
+        transition.metadata['reason'] = 'alert-continue'
+
+        return transition
+
+    def actions(self):
+        return[{
+            'type': 'alert',
             'message': self.message
         }]
 

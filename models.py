@@ -79,8 +79,8 @@ class DialogScript(models.Model):
     def definition_json(self):
         return mark_safe(json.dumps(self.definition))
 
-    def __str__(self):
-        return str(self.name)
+    def __str__(self): # pylint: disable=invalid-str-returned
+        return self.name
 
     def get_absolute_url(self):
         try:
@@ -129,7 +129,7 @@ class Dialog(models.Model):
 
     def __str__(self):
         if self.script is not None:
-            return str(self.script)
+            return self.script.name
 
         return 'dialog-' + str(self.pk)
 
@@ -155,8 +155,10 @@ class Dialog(models.Model):
         if extras is None:
             extras = {}
 
+        actions = []
+
         if self.finished is not None:
-            return []
+            return actions
 
         if self.dialog_snapshot is None:
             self.dialog_snapshot = self.script.definition
@@ -181,7 +183,7 @@ class Dialog(models.Model):
         if transition is None:
             pass # Nothing to do
         elif last_transition is None or last_transition.state_id != transition.new_state_id or transition.refresh is True:
-            actions = []
+            new_actions = []
 
             if transition.new_state_id is None:
                 self.finished = timezone.now()
@@ -198,13 +200,16 @@ class Dialog(models.Model):
 
                 new_transition.save()
 
-                actions = new_transition.actions()
+                new_actions = new_transition.actions()
 
-            actions = apply_template(actions, self.metadata)
+                if new_actions is None:
+                    new_actions = []
 
-            return actions
+            new_actions = apply_template(new_actions, self.metadata)
 
-        return []
+            actions.extend(new_actions)
+
+        return actions
 
     def advance_to(self, state_id):
         last_transition = self.transitions.order_by('-when').first()
@@ -219,7 +224,21 @@ class Dialog(models.Model):
 
         new_transition.save()
 
-        return new_transition.actions()
+        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata)
+
+        dialog_machine.advance_to(new_transition.state_id)
+
+        actions = dialog_machine.current_node.actions()
+
+        if actions is None:
+            actions = []
+
+        new_actions = new_transition.actions()
+
+        if new_actions is not None:
+            actions.extend(new_actions)
+
+        return actions
 
     def current_state_id(self):
         last_transition = self.transitions.order_by('-when').first()

@@ -1,0 +1,15 @@
+[{
+	"builder_group": "Main",
+	"next_id": "hello",
+	"type": "begin",
+	"id": "dialog-start"
+}, {
+	"builder_group": "Main",
+	"message": "Hello world. I have a dangling pointer.",
+	"type": "echo",
+	"id": "hello"
+}, {
+	"builder_group": "Main",
+	"type": "end",
+	"id": "dialog-end"
+}]
