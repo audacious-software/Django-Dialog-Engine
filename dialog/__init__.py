@@ -409,6 +409,9 @@ class Alert(BaseNode):
 
         return transition
 
+    def node_type(self):
+        return 'alert'
+
     def actions(self):
         return[{
             'type': 'alert',
