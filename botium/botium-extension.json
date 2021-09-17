@@ -1,0 +1,12 @@
+{
+  "botium": {
+    "Capabilities": {
+      "PROJECTNAME": "Django Dialog Engine Extension CLI Botium Connector",
+      "CONTAINERMODE": "django_dialog_engine/botium/src/DDEExtensionConnector.js",
+      "DDE_CONNECTOR_PREFIX": "You said: ",
+      "DDE_DIALOG_ID": "Set BOTIUM_DDE_DIALOG_ID environment variable",
+      "DDE_DIALOG_USER_ID": "Set BOTIUM_DDE_DIALOG_USER_ID environment variable",
+      "DDE_DIALOG_SCRIPT_PATH": "Set BOTIUM_DDE_DIALOG_SCRIPT_PATH environment variable"
+    }
+  }
+}

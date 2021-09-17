@@ -1,6 +1,6 @@
 const { exec } = require("child_process");
 
-class DDEConnector {
+class DDEExtensionConnector {
   constructor ({ queueBotSays, caps }) {
     this.queueBotSays = queueBotSays
     this.caps = caps
@@ -13,7 +13,6 @@ class DDEConnector {
         'python',
         'manage.py',
         'send_cli_message',
-        '--skip_extensions',
         '"' + this.caps.DDE_DIALOG_USER_ID + '"',
         '"' + this.caps.DDE_DIALOG_SCRIPT_PATH + '"',
         '"' + msg['messageText'] + '"'
@@ -49,5 +48,5 @@ class DDEConnector {
 
 module.exports = {
   PluginVersion: 1,
-  PluginClass: DDEConnector
+  PluginClass: DDEExtensionConnector
 }
