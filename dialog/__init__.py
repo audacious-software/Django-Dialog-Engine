@@ -130,6 +130,7 @@ class DialogMachine(object):
 
                 if isinstance(node, (Interrupt,)):
                     pattern_matched = node.matches(response)
+
                     if pattern_matched is not None:
                         transition = DialogTransition(new_state_id=node.node_id)
 
@@ -708,25 +709,34 @@ class CustomNode(BaseNode):
             'logger': logger
         }
 
-        code = compile(smart_str(self.evaluate_script), '<string>', 'exec')
+        try:
+            code = compile(smart_str(self.evaluate_script), '<string>', 'exec')
 
-        eval(code, {}, local_env) # nosec # pylint: disable=eval-used
+            eval(code, {}, local_env) # nosec # pylint: disable=eval-used
 
-        if result['details'] is not None and result['next_id'] is not None:
-            transition = DialogTransition(new_state_id=result['next_id'])
+            if result['details'] is not None and result['next_id'] is not None:
+                transition = DialogTransition(new_state_id=result['next_id'])
 
-            transition.metadata = result['details']
+                transition.metadata = result['details']
 
-            if result['actions'] is not None:
-                for action in result['actions']:
-                    if isinstance(action['type'], basestring) is False:
-                        raise Exception(str(action) + ' is not a valid action. Verify that the "type" key is present and is a string.')
+                if result['actions'] is not None:
+                    for action in result['actions']:
+                        if isinstance(action['type'], basestring) is False:
+                            raise Exception(str(action) + ' is not a valid action. Verify that the "type" key is present and is a string.')
 
-                transition.metadata['exit_actions'] = result['actions']
-            else:
-                transition.metadata['exit_actions'] = []
+                    transition.metadata['exit_actions'] = result['actions']
+                else:
+                    transition.metadata['exit_actions'] = []
+
+                return transition
+        except: # pylint: disable=bare-except
+            transition = DialogTransition(new_state_id=None)
+
+            transition.metadata['reason'] = 'dialog-error'
+            transition.metadata['error'] = traceback.format_exc()
 
             return transition
+
 
         return None
 

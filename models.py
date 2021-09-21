@@ -188,6 +188,8 @@ class Dialog(models.Model):
             if transition.new_state_id is None:
                 self.finished = timezone.now()
                 self.finish_reason = 'dialog_concluded'
+                self.metadata['last_transition_details'] = transition.metadata
+
                 self.save()
             else:
                 new_transition = DialogStateTransition(dialog=self)
