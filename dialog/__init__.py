@@ -832,6 +832,12 @@ class BranchingPrompt(BaseNode):
 
                     transition.refresh = True
 
+                    transition.metadata['exit_actions'] = [{
+                        'type': 'store-value',
+                        'key': self.node_id,
+                        'value': response
+                    }]
+
                     return transition
 
                 return None # What to do here?
