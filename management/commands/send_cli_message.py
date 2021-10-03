@@ -99,7 +99,8 @@ class Command(BaseCommand):
                             pass
 
             if active_dialog is None:
-                dialog_script = json.load(open(dialog_script_path))
+                with open(dialog_script_path, encoding='utf8') as script_file:
+                    dialog_script = json.load(script_file)
 
                 active_dialog = Dialog.objects.create(key=key, dialog_snapshot=dialog_script, started=timezone.now())
 

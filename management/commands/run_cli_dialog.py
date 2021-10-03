@@ -27,58 +27,59 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        dialog_json = json.load(open(options['dialog_json']))
+        with open(options['dialog_json'], encoding='utf8') as script_file:
+            dialog_json = json.load(script_file)
 
-        script = DialogScript.objects.create(name=options['dialog_json'], created=timezone.now(), definition=dialog_json)
+            script = DialogScript.objects.create(name=options['dialog_json'], created=timezone.now(), definition=dialog_json)
 
-        if script.is_valid() is False:
-            script.delete()
+            if script.is_valid() is False:
+                script.delete()
 
-            raise ValueError('Invalid script. Please review and try again.')
+                raise ValueError('Invalid script. Please review and try again.')
 
-        dialog = Dialog.objects.create(script=script, started=timezone.now())
+            dialog = Dialog.objects.create(script=script, started=timezone.now())
 
-        if dialog.is_valid() is False:
-            dialog.delete()
+            if dialog.is_valid() is False:
+                dialog.delete()
 
-            raise ValueError('Invalid dialog. Please review and try again.')
+                raise ValueError('Invalid dialog. Please review and try again.')
 
-        actions = dialog.process()
+            actions = dialog.process()
 
-        def handler(signum, frame): # pylint: disable=unused-argument
-            raise Exception("Timeout!") # pylint: disable=broad-except
+            def handler(signum, frame): # pylint: disable=unused-argument
+                raise Exception("Timeout!") # pylint: disable=broad-except
 
-        signal.signal(signal.SIGALRM, handler)
+            signal.signal(signal.SIGALRM, handler)
 
-        while dialog.is_active():
-#            print('    ACTIONS: ' + str(actions))
+            while dialog.is_active():
+                # print('    ACTIONS: ' + str(actions))
 
-            input_str = None
+                input_str = None
 
-            for action in actions:
-#                print('    ACTION: ' + json.dumps(action))
+                for action in actions:
+                    # print('    ACTION: ' + json.dumps(action))
 
-                if action['type'] == 'wait-for-input':
-                    signal.alarm(action['timeout'])
+                    if action['type'] == 'wait-for-input':
+                        signal.alarm(action['timeout'])
 
-                    print('ENTER INPUT:')
+                        print('ENTER INPUT:')
 
-                    try:
-                        input_str = input()
-                    except: # pylint: disable=bare-except
-                        break
+                        try:
+                            input_str = input()
+                        except: # pylint: disable=bare-except
+                            break
 
-                    signal.alarm(0)
-                elif action['type'] == 'echo':
-                    print('ECHO: ' + action['message'])
-                elif action['type'] == 'pause':
-                    print('PAUSE: ' + str(action['duration']))
-                    time.sleep(action['duration'])
-                elif action['type'] == 'store-value':
-                    print('STORE: ' + str(action['key']) + ' = ' + str(action['value']))
-                else:
-                    raise Exception('Unknown action: ' + json.dumps(action))
+                        signal.alarm(0)
+                    elif action['type'] == 'echo':
+                        print('ECHO: ' + action['message'])
+                    elif action['type'] == 'pause':
+                        print('PAUSE: ' + str(action['duration']))
+                        time.sleep(action['duration'])
+                    elif action['type'] == 'store-value':
+                        print('STORE: ' + str(action['key']) + ' = ' + str(action['value']))
+                    else:
+                        raise Exception('Unknown action: ' + json.dumps(action))
 
-            print('    PROCESS: ' + str(input_str))
+                print('    PROCESS: ' + str(input_str))
 
-            actions = dialog.process(input_str)
+                actions = dialog.process(input_str)

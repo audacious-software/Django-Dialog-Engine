@@ -125,9 +125,7 @@ class DialogMachine(object):
             return None
 
         if response is not None:
-            for key in self.all_nodes:
-                node = self.all_nodes[key]
-
+            for key, node in self.all_nodes.items(): # pylint: disable=unused-variable
                 if isinstance(node, (Interrupt,)):
                     pattern_matched = node.matches(response)
 

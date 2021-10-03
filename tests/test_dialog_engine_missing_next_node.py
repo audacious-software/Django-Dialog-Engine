@@ -10,7 +10,7 @@ from ..models import Dialog
 
 class TestMissingNextNodeCase(TestCase):
     def setUp(self):
-        with open('django_dialog_engine/tests/scripts/missing_next_node.json') as definition_file:
+        with open('django_dialog_engine/tests/scripts/missing_next_node.json', encoding='utf8') as definition_file:
             self.test_def = json.load(definition_file)
 
     def test_test_missing_next_node(self):
