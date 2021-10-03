@@ -6,6 +6,7 @@ from __future__ import print_function
 from builtins import str # pylint: disable=redefined-builtin
 from builtins import input # pylint: disable=redefined-builtin
 
+import io
 import json
 import signal
 import time
@@ -27,7 +28,7 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        with open(options['dialog_json'], encoding='utf8') as script_file:
+        with io.open(options['dialog_json'], encoding='utf8') as script_file:
             dialog_json = json.load(script_file)
 
             script = DialogScript.objects.create(name=options['dialog_json'], created=timezone.now(), definition=dialog_json)

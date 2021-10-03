@@ -6,6 +6,7 @@ from __future__ import print_function
 from builtins import str # pylint: disable=redefined-builtin
 
 import importlib
+import io
 import json
 import logging
 import os
@@ -99,7 +100,7 @@ class Command(BaseCommand):
                             pass
 
             if active_dialog is None:
-                with open(dialog_script_path, encoding='utf8') as script_file:
+                with io.open(dialog_script_path, encoding='utf8') as script_file:
                     dialog_script = json.load(script_file)
 
                 active_dialog = Dialog.objects.create(key=key, dialog_snapshot=dialog_script, started=timezone.now())
