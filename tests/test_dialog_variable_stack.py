@@ -1,5 +1,6 @@
 # pylint: disable=line-too-long, no-member
 
+import io
 import json
 
 from django.test import TestCase
@@ -9,7 +10,7 @@ from ..models import Dialog
 
 class InterruptsTestCase(TestCase):
     def setUp(self):
-        with open('django_dialog_engine/tests/scripts/interrupt_script.json', encoding='utf8') as definition_file:
+        with io.open('django_dialog_engine/tests/scripts/interrupt_script.json', encoding='utf8') as definition_file:
             dialog_definition = json.load(definition_file)
 
             self.dialog = Dialog.objects.create(dialog_snapshot=dialog_definition, started=timezone.now())

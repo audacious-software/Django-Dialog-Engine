@@ -1,5 +1,6 @@
 # pylint: disable=line-too-long, no-member
 
+import io
 import json
 
 from django.test import TestCase
@@ -9,12 +10,12 @@ from ..models import Dialog
 
 class HttpTestCase(TestCase):
     def setUp(self):
-        with open('django_dialog_engine/tests/scripts/http_script.json', encoding='utf8') as definition_file:
+        with io.open('django_dialog_engine/tests/scripts/http_script.json', encoding='utf8') as definition_file:
             dialog_definition = json.load(definition_file)
 
             self.dialog_http = Dialog.objects.create(dialog_snapshot=dialog_definition, started=timezone.now())
 
-        with open('django_dialog_engine/tests/scripts/http_script_fail.json', encoding='utf8') as fail_file:
+        with io.open('django_dialog_engine/tests/scripts/http_script_fail.json', encoding='utf8') as fail_file:
             fail_definition = json.load(fail_file)
 
             self.dialog_http_fail = Dialog.objects.create(dialog_snapshot=fail_definition, started=timezone.now())
