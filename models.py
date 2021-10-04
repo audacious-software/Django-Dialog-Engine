@@ -5,11 +5,14 @@ from __future__ import unicode_literals
 
 from builtins import str # pylint: disable=redefined-builtin
 
+import importlib
 import json
 
 from six import python_2_unicode_compatible
 
 from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 try:
     from django.db.models import JSONField
@@ -147,6 +150,16 @@ class Dialog(models.Model):
         self.finish_reason = finish_reason
 
         self.save()
+
+        for app in settings.INSTALLED_APPS:
+            try:
+                dialog_module = importlib.import_module('.dialog_api', package=app)
+
+                dialog_module.finished_dialog(self)
+            except ImportError:
+                pass
+            except AttributeError:
+                pass
 
     def is_active(self):
         return self.finished is None
@@ -330,6 +343,18 @@ class Dialog(models.Model):
 
         self.put_value(key, list_value)
 
+@receiver(post_save, sender=Dialog)
+def initialize_dialog(sender, instance, created, **kwargs): # pylint: disable=unused-argument
+    if created:
+        for app in settings.INSTALLED_APPS:
+            try:
+                dialog_module = importlib.import_module('.dialog_api', package=app)
+
+                dialog_module.initialize_dialog(instance)
+            except ImportError:
+                pass
+            except AttributeError:
+                pass
 
 @python_2_unicode_compatible
 class DialogStateTransition(models.Model):
