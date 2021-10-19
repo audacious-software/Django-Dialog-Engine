@@ -26,7 +26,7 @@ from django.urls.exceptions import NoReverseMatch
 from django.utils import timezone
 from django.utils.html import mark_safe
 
-from .dialog import DialogMachine, fetch_default_logger, ExternalChoice
+from .dialog import DialogMachine, fetch_default_logger, ExternalChoiceNode
 
 FINISH_REASONS = (
     ('not_finished', 'Not Finished'),
@@ -273,7 +273,7 @@ class Dialog(models.Model):
         if last_transition is not None:
             dialog_machine.advance_to(last_transition.state_id)
 
-            if isinstance(dialog_machine.current_node, ExternalChoice):
+            if isinstance(dialog_machine.current_node, ExternalChoiceNode):
                 dialog_actions = dialog_machine.current_node.actions()
 
                 for action in dialog_actions:
