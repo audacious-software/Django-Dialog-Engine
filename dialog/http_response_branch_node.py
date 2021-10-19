@@ -3,7 +3,7 @@
 import re
 import traceback
 
-import lxml
+import lxml # nosec
 import requests
 
 from jsonpath_ng.ext import parse as jsonpath_ng_parse
