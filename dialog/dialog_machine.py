@@ -55,7 +55,7 @@ class DialogMachine(object):
                             }
 
                             end_node = EndNode.parse(end_node_def)
-                            
+
                             end_node.definition = end_node_def
 
                             self.all_nodes[end_node.node_id] = end_node

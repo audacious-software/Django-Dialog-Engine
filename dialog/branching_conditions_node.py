@@ -2,8 +2,6 @@
 
 import traceback
 
-from django.utils.encoding import smart_str
-
 from .base_node import BaseNode, fetch_default_logger
 from .dialog_machine import DialogTransition
 
@@ -66,7 +64,7 @@ class BranchingConditionsNode(BaseNode):
                 local_env = extras.copy()
                 local_env['logger'] = logger
 
-                result = eval(conditional_action['condition'], {}, extras)
+                result = eval(conditional_action['condition'], {}, extras) # pylint: disable=eval-used # nosec
 
                 if result: # nosec # pylint: disable=eval-used
                     transition = DialogTransition(new_state_id=conditional_action['action'])
@@ -78,7 +76,7 @@ class BranchingConditionsNode(BaseNode):
                     return transition
         except: # pylint: disable=bare-except
             traceback.print_exc()
-            
+
             transition = DialogTransition(new_state_id=self.error_node)
 
             transition.metadata['reason'] = 'conditional-error'
