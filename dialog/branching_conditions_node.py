@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long, super-with-arguments
+# pylint: disable=line-too-long, super-with-arguments, eval-used
 
 import traceback
 
@@ -64,7 +64,7 @@ class BranchingConditionsNode(BaseNode):
                 local_env = extras.copy()
                 local_env['logger'] = logger
 
-                result = eval(conditional_action['condition'], {}, extras) # pylint: disable=eval-used # nosec
+                result = eval(conditional_action['condition'], {}, extras) # nosec
 
                 if result: # nosec # pylint: disable=eval-used
                     transition = DialogTransition(new_state_id=conditional_action['action'])
