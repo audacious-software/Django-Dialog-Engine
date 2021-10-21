@@ -19,6 +19,8 @@ class BaseNode(object):
         self.next_node_id = next_node_id
 
         self.node_name = node_id
+        
+        self.definition = None
 
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=unused-argument, too-many-arguments
         raise DialogError('Unimplemented method: evaluate. Class: ' + self.__class__.__name__)

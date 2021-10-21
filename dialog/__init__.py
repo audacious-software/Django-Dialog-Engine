@@ -6,6 +6,7 @@ from .base_node import DialogError, MissingNextDialogNodeError, BaseNode, fetch_
 
 from .alert_node import AlertNode
 from .begin_node import BeginNode
+from .branching_conditions_node import BranchingConditionsNode
 from .branching_prompt_node import BranchingPromptNode
 from .custom_node import CustomNode
 from .echo_node import EchoNode

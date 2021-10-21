@@ -9,6 +9,9 @@ class PauseNode(BaseNode):
     @staticmethod
     def parse(dialog_def):
         if dialog_def['type'] == 'pause':
+            if ('next_id' in dialog_def) is False:
+                dialog_def['next_id'] = dialog_def['id']
+
             return PauseNode(dialog_def['id'], dialog_def['next_id'], dialog_def['duration'])
 
         return None

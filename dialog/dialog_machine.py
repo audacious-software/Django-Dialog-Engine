@@ -55,6 +55,8 @@ class DialogMachine(object):
                             }
 
                             end_node = EndNode.parse(end_node_def)
+                            
+                            end_node.definition = end_node_def
 
                             self.all_nodes[end_node.node_id] = end_node
 
@@ -64,6 +66,7 @@ class DialogMachine(object):
 
                     if node is not None and 'name' in node_def:
                         node.node_name = node_def['name']
+                        node.definition = node_def
 
             if node is None:
                 raise DialogError('Unable to parse node definition: ' + json.dumps(node_def, indent=2))
