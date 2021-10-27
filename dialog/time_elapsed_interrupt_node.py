@@ -8,7 +8,7 @@ class TimeElapsedInterruptNode(BaseNode):
     @staticmethod
     def parse(dialog_def):
         if dialog_def['type'] == 'time-elapsed-interrupt':
-            interrupt_node = TimeElapsedInterruptNode(dialog_def['id'], dialog_def['hours-elapsed'], dialog_def['minutes-elapsed'], dialog_def['next_id'])
+            interrupt_node = TimeElapsedInterruptNode(dialog_def['id'], dialog_def['hours_elapsed'], dialog_def['minutes_elapsed'], dialog_def['next_id'])
 
             return interrupt_node
 
