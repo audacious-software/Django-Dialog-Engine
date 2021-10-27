@@ -24,7 +24,6 @@ class TimeElapsedInterruptNode(BaseNode):
         return 'time-elapsed-interrupt'
 
     def should_fire(self, last_transition=None, ignore_transitions=False):
-        print('SHOULD FIRE? ' + str(last_transition))
         if last_transition is not None:
             elapsed_seconds = (self.hours_elapsed * 60 * 60) + (self.minutes_elapsed * 60)
 
