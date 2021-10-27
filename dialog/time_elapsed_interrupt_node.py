@@ -24,6 +24,7 @@ class TimeElapsedInterruptNode(BaseNode):
         return 'time-elapsed-interrupt'
 
     def should_fire(self, last_transition=None, ignore_transitions=False):
+        print('SHOULD FIRE? ' + str(last_transition))
         if last_transition is not None:
             elapsed_seconds = (self.hours_elapsed * 60 * 60) + (self.minutes_elapsed * 60)
 
@@ -31,11 +32,11 @@ class TimeElapsedInterruptNode(BaseNode):
 
             now = timezone.now()
 
-            if (now - dialog.started).total_seconds >= elapsed_seconds:
+            if (now - dialog.started).total_seconds() >= elapsed_seconds:
                 if ignore_transitions:
                     return True
 
-                existing_transitions = dialog.transistions.filter(state_id=self.node_id)
+                existing_transitions = dialog.transitions.filter(state_id=self.node_id)
 
                 if existing_transitions.count() > 0:
                     return False # Already fired / entered state

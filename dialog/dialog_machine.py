@@ -95,29 +95,28 @@ class DialogMachine(object):
         if self.current_node is None:
             return None
 
-        if response is not None:
-            for key, node in self.all_nodes.items(): # pylint: disable=unused-variable
-                if isinstance(node, (InterruptNode,)):
-                    pattern_matched = node.matches(response)
+        for key, node in self.all_nodes.items(): # pylint: disable=unused-variable
+            if response is not None and isinstance(node, (InterruptNode,)):
+                pattern_matched = node.matches(response)
 
-                    if pattern_matched is not None:
-                        transition = DialogTransition(new_state_id=node.node_id)
+                if pattern_matched is not None:
+                    transition = DialogTransition(new_state_id=node.node_id)
 
-                        transition.metadata['reason'] = 'interrupt'
-                        transition.metadata['pattern'] = 'pattern_matched'
-                        transition.metadata['response'] = response
-                        transition.metadata['actions'] = []
+                    transition.metadata['reason'] = 'interrupt'
+                    transition.metadata['pattern'] = 'pattern_matched'
+                    transition.metadata['response'] = response
+                    transition.metadata['actions'] = []
 
-                        return transition
-                elif isinstance(node, (TimeElapsedInterruptNode,)):
-                    if node.should_fire(response, last_transition, extras, logger):
-                        transition = DialogTransition(new_state_id=node.node_id)
+                    return transition
+            elif isinstance(node, (TimeElapsedInterruptNode,)):
+                if node.should_fire(last_transition):
+                    transition = DialogTransition(new_state_id=node.node_id)
 
-                        transition.metadata['reason'] = 'time-elapsed-interrupt'
-                        transition.metadata['hours_elapsed'] = node.hours_elapsed
-                        transition.metadata['minutes_elapsed'] = node.minutes_elapsed
+                    transition.metadata['reason'] = 'time-elapsed-interrupt'
+                    transition.metadata['hours_elapsed'] = node.hours_elapsed
+                    transition.metadata['minutes_elapsed'] = node.minutes_elapsed
 
-                        return transition
+                    return transition
 
         transition = self.current_node.evaluate(self, response, last_transition, extras, logger)
 

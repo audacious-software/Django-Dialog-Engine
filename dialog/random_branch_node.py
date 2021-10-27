@@ -34,7 +34,12 @@ class RandomBranchNode(BaseNode):
             choices.append(action['action'])
             weights.append(action['weight'])
 
-        chosen = numpy.random.choice(choices, p=weights)
+        chosen = None
+
+        try:
+            chosen = numpy.random.choice(choices, p=weights)
+        except ValueError:
+            chosen = numpy.random.choice(choices)
 
         transition = DialogTransition(new_state_id=chosen)
 
