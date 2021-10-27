@@ -84,6 +84,7 @@ class DialogMachine(object):
 
     def evaluate(self, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-branches
         from .interrupt_node import InterruptNode # pylint: disable=import-outside-toplevel
+        from .time_elapsed_interrupt_node import TimeElapsedInterruptNode # pylint: disable=import-outside-toplevel
 
         if extras is None:
             extras = {}
@@ -106,6 +107,15 @@ class DialogMachine(object):
                         transition.metadata['pattern'] = 'pattern_matched'
                         transition.metadata['response'] = response
                         transition.metadata['actions'] = []
+
+                        return transition
+                elif isinstance(node, (TimeElapsedInterruptNode,)):
+                    if node.should_fire(response, last_transition, extras, logger):
+                        transition = DialogTransition(new_state_id=node.node_id)
+
+                        transition.metadata['reason'] = 'time-elapsed-interrupt'
+                        transition.metadata['hours_elapsed'] = node.hours_elapsed
+                        transition.metadata['minutes_elapsed'] = node.minutes_elapsed
 
                         return transition
 
