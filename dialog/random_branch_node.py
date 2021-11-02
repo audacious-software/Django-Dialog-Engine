@@ -57,7 +57,7 @@ class RandomBranchNode(BaseNode):
             try:
                 weight = float(rendered)
             except: # pylint: disable=bare-except
-                pass # Unable to parse
+                weight = 1.0
 
             weights.append(weight)
 
