@@ -1,6 +1,10 @@
 # pylint: disable=line-too-long, super-with-arguments
 
+import copy
+
 import numpy
+
+from django.template import Template, Context
 
 from .base_node import BaseNode
 from .dialog_machine import DialogTransition
@@ -26,24 +30,54 @@ class RandomBranchNode(BaseNode):
     def node_type(self):
         return 'random-branch'
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-locals
         choices = []
         weights = []
 
+        weight_metadata = {}
+
         for action in self.random_actions:
             choices.append(action['action'])
-            weights.append(action['weight'])
+
+            raw_weight = action['weight']
+
+            value_template = Template(str(raw_weight))
+
+            context_metadata = copy.deepcopy(dialog.metadata)
+
+            if extras is not None:
+                context_metadata.update(copy.deepcopy(extras))
+
+            context = Context(context_metadata)
+
+            rendered = value_template.render(context)
+
+            weight = 1.0
+
+            try:
+                weight = float(rendered)
+            except: # pylint: disable=bare-except
+                pass # Unable to parse
+
+            weights.append(weight)
+
+            weight_metadata[action['action']] = {
+                'raw_weight': raw_weight,
+                'rendered_weight': weight
+            }
 
         chosen = None
 
         try:
-            chosen = numpy.random.choice(choices, p=weights)
+            normalized_weights = numpy.array(weights) / numpy.sum(weights)
+            chosen = numpy.random.choice(choices, p=normalized_weights)
         except ValueError:
             chosen = numpy.random.choice(choices)
 
         transition = DialogTransition(new_state_id=chosen)
 
         transition.metadata['reason'] = 'random-branch'
+        transition.metadata['weights'] = weight_metadata
 
         return transition
 
