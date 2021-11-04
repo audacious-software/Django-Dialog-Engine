@@ -81,6 +81,8 @@ class CustomNode(BaseNode):
 
                 return transition
         except: # pylint: disable=bare-except
+            traceback.print_exc()
+
             transition = DialogTransition(new_state_id=None)
 
             transition.metadata['reason'] = 'dialog-error'
@@ -92,14 +94,19 @@ class CustomNode(BaseNode):
         return None
 
     def actions(self): # nosec
-        code = compile(self.actions_script, '<string>', 'exec')
+        try:
+            code = compile(self.actions_script, '<string>', 'exec')
 
-        custom_actions = []
+            custom_actions = []
 
-        eval(code, {}, {'definition': self.definition, 'actions': custom_actions}) # pylint: disable=eval-used
+            eval(code, {}, {'definition': self.definition, 'actions': custom_actions}) # pylint: disable=eval-used
 
-        for action in custom_actions:
-            if isinstance(action['type'], basestring) is False:
-                raise Exception(str(action) + ' is not a valid action. Verify that the "type" key is present and is a string.')
+            for action in custom_actions:
+                if isinstance(action['type'], basestring) is False:
+                    raise Exception(str(action) + ' is not a valid action. Verify that the "type" key is present and is a string.')
 
-        return custom_actions
+            return custom_actions
+        except: # pylint: disable=bare-except
+            traceback.print_exc()
+
+        return []
