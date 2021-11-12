@@ -115,6 +115,42 @@ class DialogScript(models.Model):
     def dialog_machine(self):
         return DialogMachine(self.definition, {})
 
+    def broadcast_changes(self, updates):
+        for app in settings.INSTALLED_APPS:
+            try:
+                dialog_module = importlib.import_module('.dialog_api', package=app)
+
+                dialog_module.dialog_updated(self, timezone.now(), updates)
+            except ImportError:
+                pass
+            except AttributeError:
+                pass
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            cls = self.__class__
+            old = cls.objects.get(pk=self.pk)
+
+            new = self
+
+            changed_fields = {}
+
+            for field in cls._meta.get_fields(): # pylint: disable=protected-access
+                field_name = field.name
+
+                try:
+                    if getattr(old, field_name) != getattr(new, field_name):
+                        changed_fields[field_name] = {
+                            'original': getattr(old, field_name),
+                            'updated': getattr(new, field_name)
+                        }
+
+                except Exception as ex: # pylint: disable=broad-except, unused-variable
+                    pass # Catch field does not exist exception
+
+            self.broadcast_changes(changed_fields)
+
+        super().save(*args, **kwargs)
 
 @python_2_unicode_compatible
 class Dialog(models.Model):
