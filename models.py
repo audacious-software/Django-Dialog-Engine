@@ -126,7 +126,7 @@ class DialogScript(models.Model):
             except AttributeError:
                 pass
 
-    def save(self, *args, **kwargs): # pylint: disable=arguments-differ
+    def save(self, *args, **kwargs): # pylint: disable=arguments-differ, signature-differs
         if self.pk:
             cls = self.__class__
             old = cls.objects.get(pk=self.pk)
