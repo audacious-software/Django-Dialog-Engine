@@ -126,7 +126,7 @@ class DialogScript(models.Model):
             except AttributeError:
                 pass
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs): # pylint: disable=arguments-differ
         if self.pk:
             cls = self.__class__
             old = cls.objects.get(pk=self.pk)
@@ -145,12 +145,12 @@ class DialogScript(models.Model):
                             'updated': getattr(new, field_name)
                         }
 
-                except Exception as ex: # pylint: disable=broad-except, unused-variable # nosec
+                except Exception as ex: # nosec # pylint: disable=broad-except, unused-variable 
                     pass # Catch field does not exist exception
 
             self.broadcast_changes(changed_fields)
 
-        super().save(*args, **kwargs)
+        super(DialogScript, self).save(*args, **kwargs)
 
 @python_2_unicode_compatible
 class Dialog(models.Model):
