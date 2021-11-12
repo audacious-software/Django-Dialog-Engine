@@ -145,7 +145,7 @@ class DialogScript(models.Model):
                             'updated': getattr(new, field_name)
                         }
 
-                except Exception as ex: # pylint: disable=broad-except, unused-variable
+                except Exception as ex: # pylint: disable=broad-except, unused-variable # nosec
                     pass # Catch field does not exist exception
 
             self.broadcast_changes(changed_fields)
