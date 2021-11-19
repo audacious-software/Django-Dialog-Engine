@@ -37,8 +37,6 @@ class RandomBranchNode(BaseNode):
         weight_metadata = {}
 
         for action in self.random_actions:
-            choices.append(action['action'])
-
             raw_weight = action['weight']
 
             value_template = Template(str(raw_weight))
@@ -59,19 +57,31 @@ class RandomBranchNode(BaseNode):
             except: # pylint: disable=bare-except
                 weight = 1.0
 
-            weights.append(weight)
+            if weight > 0.0:
+                choices.append(action['action'])
+                weights.append(weight)
 
-            weight_metadata[action['action']] = {
-                'raw_weight': raw_weight,
-                'rendered_weight': weight
-            }
+                weight_metadata[action['action']] = {
+                    'raw_weight': raw_weight,
+                    'rendered_weight': weight
+                }
 
         chosen = None
 
-        try:
-            normalized_weights = numpy.array(weights) / numpy.sum(weights)
-            chosen = numpy.random.choice(choices, p=normalized_weights)
-        except ValueError:
+        if len(choices) > 1:
+            try:
+                normalized_weights = numpy.array(weights) / numpy.sum(weights)
+                chosen = numpy.random.choice(choices, p=normalized_weights)
+            except ValueError:
+                chosen = numpy.random.choice(choices)
+        elif len(choices) == 1:
+            chosen = choices[0]
+        else:
+            choices = []
+
+            for action in self.random_actions:
+                choices.append(action['action'])
+
             chosen = numpy.random.choice(choices)
 
         transition = DialogTransition(new_state_id=chosen)
