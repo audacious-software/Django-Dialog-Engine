@@ -1,7 +1,7 @@
 # pylint: disable=line-too-long, no-member
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
+from __future__ import print_function, unicode_literals
 
 from builtins import str # pylint: disable=redefined-builtin
 
