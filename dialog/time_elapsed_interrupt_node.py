@@ -20,11 +20,17 @@ class TimeElapsedInterruptNode(BaseNode):
         self.hours_elapsed = hours_elapsed
         self.minutes_elapsed = minutes_elapsed
 
+        if self.hours_elapsed is None:
+            self.hours_elapsed = 0
+
+        if self.minutes_elapsed is None:
+            self.minutes_elapsed = 0
+
     def node_type(self):
         return 'time-elapsed-interrupt'
 
     def should_fire(self, last_transition=None, ignore_transitions=False):
-        if last_transition is not None:
+        if last_transition is not None and self.hours_elapsed is not None and self.minutes_elapsed is not None:
             elapsed_seconds = (self.hours_elapsed * 60 * 60) + (self.minutes_elapsed * 60)
 
             dialog = last_transition.dialog

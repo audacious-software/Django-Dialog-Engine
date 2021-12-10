@@ -7,6 +7,7 @@ from builtins import str # pylint: disable=redefined-builtin
 
 import importlib
 import json
+import traceback
 
 from six import python_2_unicode_compatible
 
@@ -26,13 +27,14 @@ from django.urls.exceptions import NoReverseMatch
 from django.utils import timezone
 from django.utils.html import mark_safe
 
-from .dialog import DialogMachine, fetch_default_logger, ExternalChoiceNode
+from .dialog import DialogMachine, fetch_default_logger, ExternalChoiceNode, DialogError
 
 FINISH_REASONS = (
     ('not_finished', 'Not Finished'),
     ('dialog_concluded', 'Dialog Concluded'),
     ('user_cancelled', 'User Cancelled'),
     ('dialog_cancelled', 'Dialog Cancelled'),
+    ('dialog_error', 'Dialog Error'),
     ('timed_out', 'Timed Out'),
 )
 
@@ -215,52 +217,63 @@ class Dialog(models.Model):
 
         last_transition = self.transitions.order_by('-when').first()
 
-        dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata, django_object=self)
-
-        if last_transition is not None:
-            dialog_machine.advance_to(last_transition.state_id)
-
-        logger = fetch_default_logger()
-
         try:
-            logger = settings.FETCH_LOGGER()
-        except AttributeError:
-            pass
+            dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata, django_object=self)
 
-        transition = dialog_machine.evaluate(response=response, last_transition=last_transition, extras=extras, logger=logger)
+            if last_transition is not None:
+                dialog_machine.advance_to(last_transition.state_id)
 
-        if transition is None:
-            pass # Nothing to do
-        elif last_transition is None or last_transition.state_id != transition.new_state_id or transition.refresh is True:
-            new_actions = []
+            logger = fetch_default_logger()
 
-            if transition.new_state_id is None:
-                self.finished = timezone.now()
-                self.finish_reason = 'dialog_concluded'
-                self.metadata['last_transition_details'] = transition.metadata
+            try:
+                logger = settings.FETCH_LOGGER()
+            except AttributeError:
+                pass
 
-                self.save()
-            else:
-                new_transition = DialogStateTransition(dialog=self)
-                new_transition.when = timezone.now()
-                new_transition.state_id = transition.new_state_id
-                new_transition.metadata = transition.metadata
+            transition = dialog_machine.evaluate(response=response, last_transition=last_transition, extras=extras, logger=logger)
 
-                if last_transition is not None:
-                    new_transition.prior_state_id = last_transition.state_id
+            if transition is None:
+                pass # Nothing to do
+            elif last_transition is None or last_transition.state_id != transition.new_state_id or transition.refresh is True:
+                new_actions = []
 
-                new_transition.save()
+                if transition.new_state_id is None:
+                    self.finished = timezone.now()
+                    self.finish_reason = 'dialog_concluded'
+                    self.metadata['last_transition_details'] = transition.metadata
 
-                new_actions = new_transition.actions()
+                    self.save()
+                else:
+                    new_transition = DialogStateTransition(dialog=self)
+                    new_transition.when = timezone.now()
+                    new_transition.state_id = transition.new_state_id
+                    new_transition.metadata = transition.metadata
 
-                if new_actions is None:
-                    new_actions = []
+                    if last_transition is not None:
+                        new_transition.prior_state_id = last_transition.state_id
 
-            new_actions = apply_template(new_actions, self.metadata)
+                    new_transition.save()
 
-            actions.extend(new_actions)
+                    new_actions = new_transition.actions()
 
-        return actions
+                    if new_actions is None:
+                        new_actions = []
+
+                new_actions = apply_template(new_actions, self.metadata)
+
+                actions.extend(new_actions)
+
+            return actions
+        except DialogError:
+            print('Encountered an issue in dialog %d:' % self.pk)
+            traceback.print_exc()
+            print('Force-finishing %d.' % self.pk)
+
+            self.metadata['dialog_error'] = traceback.format_exc()
+
+            self.finish('dialog_error')
+
+            return []
 
     def advance_to(self, state_id):
         last_transition = self.transitions.order_by('-when').first()
