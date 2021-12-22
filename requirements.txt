@@ -6,7 +6,7 @@ Django==1.11.29; python_version < '3.0'
 Django==3.2.7; python_version >= '3.0'
 future==0.18.2
 jsonpath-ng==1.5.3
-lxml==4.6.3
+lxml==4.6.5
 numpy==1.21.0; python_version >= '3.0'
 numpy==1.16.6; python_version < '3.0'
 psycopg2-binary==2.8.6; python_version < '3.0'
