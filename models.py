@@ -70,6 +70,8 @@ class DialogScript(models.Model):
 
     identifier = models.SlugField(max_length=1024, null=True, blank=True)
 
+    labels = models.TextField(max_length=(1024 * 1024), null=True, blank=True)
+
     definition = JSONField(null=True, blank=True)
 
     def is_valid(self):
@@ -86,6 +88,23 @@ class DialogScript(models.Model):
 
     def __str__(self): # pylint: disable=invalid-str-returned
         return self.name
+
+    def labels_list(self):
+        if self.labels is None:
+            return []
+
+        cleaned_labels = []
+
+        for line in self.labels.splitlines():
+            cleaned_labels.append(line.strip())
+
+        return cleaned_labels
+
+    def admin_labels(self):
+        if self.labels is None:
+            return None
+
+        return '; '.join(self.labels_list())
 
     def get_absolute_url(self):
         try:

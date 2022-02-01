@@ -1,7 +1,10 @@
+# pylint: disable=no-member
 # -*- coding: utf-8 -*-
+
 from __future__ import unicode_literals
 
 from django.contrib import admin
+from django.db.models import Q
 
 from .models import Dialog, DialogScript, DialogStateTransition
 
@@ -20,11 +23,45 @@ def clone_dialog_scripts(modeladmin, request, queryset): # pylint: disable=unuse
 
 clone_dialog_scripts.short_description = "Clone selected dialog scripts"
 
+class DialogScriptLabelFilter(admin.SimpleListFilter):
+    title = 'label'
+
+    parameter_name = 'label'
+
+    def lookups(self, request, model_admin):
+        all_labels = []
+
+        for script in DialogScript.objects.all():
+            for label in script.labels_list():
+                if (label in all_labels) is False:
+                    all_labels.append(label)
+
+        all_labels.sort()
+
+        lookups_list = []
+
+        for label in all_labels:
+            lookups_list.append((label, label))
+
+        return lookups_list
+
+    def queryset(self, request, queryset):
+        if self.value() is None:
+            return queryset
+
+        query = Q(labels=self.value())
+
+        query = query | Q(labels__endswith=('\r\n%s' % self.value()))
+        query = query | Q(labels__startswith=('%s\r\n' % self.value()))
+        query = query | Q(labels__contains=('\r\n%s\r\n' % self.value()))
+
+        return queryset.filter(query)
+
 @admin.register(DialogScript)
 class DialogScriptAdmin(admin.ModelAdmin):
-    list_display = ('name', 'identifier', 'created',)
-    search_fields = ('name', 'identifier', 'definition',)
-    list_filter = ('created',)
+    list_display = ('name', 'identifier', 'created', 'admin_labels',)
+    search_fields = ('name', 'identifier', 'definition', 'labels',)
+    list_filter = ('created', DialogScriptLabelFilter,)
     actions = [clone_dialog_scripts]
 
 @admin.register(DialogStateTransition)
