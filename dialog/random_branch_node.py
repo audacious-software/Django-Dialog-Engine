@@ -13,13 +13,13 @@ class RandomBranchNode(BaseNode):
     @staticmethod
     def parse(dialog_def):
         if dialog_def['type'] == 'random-branch':
-            branch_node = RandomBranchNode(dialog_def['id'], dialog_def['actions'])
+            branch_node = RandomBranchNode(dialog_def['id'], dialog_def['actions'], dialog_def.get('without_replacement', False))
 
             return branch_node
 
         return None
 
-    def __init__(self, node_id, actions):
+    def __init__(self, node_id, actions, without_replacement=False):
         super(RandomBranchNode, self).__init__(node_id, node_id)
 
         if actions is None:
@@ -27,10 +27,12 @@ class RandomBranchNode(BaseNode):
         else:
             self.random_actions = actions
 
+        self.without_replacement = without_replacement
+
     def node_type(self):
         return 'random-branch'
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-locals
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-locals, too-many-branches, too-many-statements
         choices = []
         weights = []
 
@@ -68,6 +70,21 @@ class RandomBranchNode(BaseNode):
 
         chosen = None
 
+        if self.without_replacement and extras is not None:
+            key = '__%s_prior_choices' % self.node_id
+
+            for prior_choice in extras.get(key, []):
+                try:
+                    index = choices.index(prior_choice)
+
+                    choices.pop(index)
+                    weights.pop(index)
+
+                    del weight_metadata[prior_choice]
+
+                except ValueError:
+                    pass # Not in list
+
         if len(choices) > 1:
             try:
                 normalized_weights = numpy.array(weights) / numpy.sum(weights)
@@ -88,6 +105,19 @@ class RandomBranchNode(BaseNode):
 
         transition.metadata['reason'] = 'random-branch'
         transition.metadata['weights'] = weight_metadata
+
+        if self.without_replacement and extras is not None:
+            key = '__%s_prior_choices' % self.node_id
+
+            if extras.get(key, None) is None:
+                extras[key] = []
+
+            if len(choices) > 1:
+                extras[key].append(chosen)
+            else:
+                extras[key] = []
+
+            transition.metadata['prior_choices'] = extras[key]
 
         return transition
 
