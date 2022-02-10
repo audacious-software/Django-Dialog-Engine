@@ -1,5 +1,7 @@
 # pylint: disable=line-too-long, super-with-arguments
 
+from __future__ import print_function
+
 import traceback
 
 from past.builtins import basestring # pylint: disable=redefined-builtin
