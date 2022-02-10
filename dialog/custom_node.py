@@ -107,6 +107,9 @@ class CustomNode(BaseNode):
 
             return custom_actions
         except: # pylint: disable=bare-except
+            print('Error in custom node (%s):' % self.node_id)
+
+
             traceback.print_exc()
 
         return []
