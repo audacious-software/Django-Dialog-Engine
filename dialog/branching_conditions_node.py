@@ -35,6 +35,34 @@ class BranchingConditionsNode(BaseNode):
     def node_type(self):
         return 'branch-conditions'
 
+    def prefix_nodes(self, prefix):
+        super().prefix_nodes(prefix)
+
+        if self.no_match_node_id is not None:
+            self.no_match_node_id = prefix + self.no_match_node_id
+
+        if self.error_node is not None:
+            self.error_node = prefix + self.error_node
+
+        for action in self.conditional_actions:
+            action['action'] = prefix + action['action']
+
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        if 'next_id' in node_def:
+            del node_def['next_id']
+
+        if self.no_match_node_id is not None:
+            node_def['no_match'] = self.no_match_node_id
+
+        if self.error_node is not None:
+            node_def['error'] = self.error_node
+
+        node_def['actions'] = self.conditional_actions
+
+        return node_def
+
     def next_nodes(self):
         nodes = []
 

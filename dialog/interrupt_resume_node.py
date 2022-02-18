@@ -24,6 +24,16 @@ class InterruptResumeNode(BaseNode):
     def node_type(self):
         return 'interrupt-resume'
 
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        if 'next_id' in node_def:
+            del node_def['next_id']
+
+        node_def['force_top'] = self.force_top
+
+        return node_def
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}

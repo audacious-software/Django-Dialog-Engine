@@ -7,7 +7,10 @@ from builtins import str # pylint: disable=redefined-builtin
 
 import importlib
 import json
+import sys
 import traceback
+
+import gettext
 
 from six import python_2_unicode_compatible
 
@@ -37,6 +40,8 @@ FINISH_REASONS = (
     ('dialog_error', 'Dialog Error'),
     ('timed_out', 'Timed Out'),
 )
+
+_ = gettext.gettext
 
 def apply_template(obj, context_dict):
     if isinstance(obj, str):
@@ -68,6 +73,8 @@ class DialogScript(models.Model):
     name = models.CharField(max_length=1024, default='New Dialog Script')
     created = models.DateTimeField(auto_now_add=True, null=True)
 
+    embeddable = models.BooleanField(default=False)
+
     identifier = models.SlugField(max_length=1024, null=True, blank=True)
 
     labels = models.TextField(max_length=(1024 * 1024), null=True, blank=True)
@@ -96,11 +103,29 @@ class DialogScript(models.Model):
         cleaned_labels = []
 
         for line in self.labels.splitlines():
-            cleaned_labels.append(line.strip())
+            tokens = line.split('|')
+
+            cleaned_labels.append(tokens[-1])
 
         return cleaned_labels
 
+    def priority_for_label(self, label):
+        label_suffix = '|%s' % label
+
+        for line in self.labels.splitlines():
+
+            if line.endswith(label_suffix):
+                return int(line.replace(label_suffix, ''))
+
+        if hasattr(sys, 'maxint'):
+            return sys.maxint
+
+        return sys.maxsize
+
     def admin_labels(self):
+        class Meta: # pylint: disable=too-few-public-methods, unused-variable
+            verbose_name = _('Script labels')
+
         if self.labels is None:
             return None
 
@@ -412,8 +437,8 @@ class Dialog(models.Model):
         self.put_value(key, list_value)
 
 @receiver(post_save, sender=Dialog)
-def initialize_dialog(sender, instance, created, **kwargs): # pylint: disable=unused-argument
-    if created:
+def initialize_dialog(sender, instance, created, **kwargs): # pylint: disable=unused-argument, too-many-locals, too-many-branches
+    while True:
         for app in settings.INSTALLED_APPS:
             try:
                 dialog_module = importlib.import_module('.dialog_api', package=app)
@@ -423,6 +448,70 @@ def initialize_dialog(sender, instance, created, **kwargs): # pylint: disable=un
                 pass
             except AttributeError:
                 pass
+
+        replacements = []
+
+        machine = DialogMachine(instance.dialog_snapshot)
+
+        for node in machine.nodes():
+            replacement_nodes = node.replacement_definitions(instance.dialog_snapshot)
+
+            if replacement_nodes is not None:
+                replacements.append((node, replacement_nodes,))
+
+        if len(replacements) == 0: # No more replacements to be made
+            break
+
+        for replacement in replacements:
+            original_node = replacement[0] # embed node
+            replacement_nodes = replacement[1] # new nodes
+
+            outer_begin = original_node.node_id # entry point
+            outer_end = original_node.next_node_id # exit point
+
+            inner_begin = outer_end # entry point
+            inner_end = outer_end # exit point
+
+            replacement_to_remove = []
+
+            for node_def in replacement_nodes:
+                if node_def['type'] == 'begin':
+                    inner_begin = node_def['next_id']
+
+                    replacement_to_remove.append(node_def)
+                elif node_def['type'] == 'end':
+                    inner_end = node_def['id']
+
+                    replacement_to_remove.append(node_def)
+
+            for node_def in replacement_to_remove:
+                while node_def in replacement_nodes:
+                    replacement_nodes.remove(node_def)
+
+            instance.dialog_snapshot.extend(replacement_nodes)
+
+            entry_pause = {
+                'type': 'pause',
+                'id': outer_begin,
+                'next_id':  inner_begin,
+                'duration': 0,
+                'comment': 'Automatically inserted to support embedded dialog (%s / enter).' % outer_begin
+            }
+
+            instance.dialog_snapshot.append(entry_pause)
+
+            exit_pause = {
+                'type': 'pause',
+                'id': inner_end,
+                'next_id':  outer_end,
+                'duration': 0,
+                'comment': 'Automatically inserted to support embedded dialog (%s / exit).' % outer_begin
+            }
+
+            instance.dialog_snapshot.append(exit_pause)
+
+            instance.save()
+
 
 @python_2_unicode_compatible
 class DialogStateTransition(models.Model):

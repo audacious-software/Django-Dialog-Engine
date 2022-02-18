@@ -170,3 +170,22 @@ class DialogMachine(object):
 
     def fetch_node(self, node_id):
         return self.all_nodes.get(node_id, None)
+
+    def prefix_nodes(self, prefix):
+        node_keys = list(self.all_nodes.keys())
+
+        for key in node_keys:
+            new_key = prefix + key
+
+            node = self.all_nodes.pop(key)
+            node.prefix_nodes(prefix)
+
+            self.all_nodes[new_key] = node
+
+    def dialog_definition(self):
+        nodes_definitions = []
+
+        for node in self.nodes():
+            nodes_definitions.append(node.node_definition())
+
+        return nodes_definitions

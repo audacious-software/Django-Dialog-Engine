@@ -9,15 +9,15 @@ class ExternalChoiceNode(BaseNode):
     @staticmethod
     def parse(dialog_def):
         if dialog_def['type'] == 'external-choice':
-            prompt_node = ExternalChoiceNode(dialog_def['id'], dialog_def['actions'])
+            choice_node = ExternalChoiceNode(dialog_def['id'], dialog_def['actions'])
 
             if 'timeout' in dialog_def:
-                prompt_node.timeout = dialog_def['timeout']
+                choice_node.timeout = dialog_def['timeout']
 
             if 'timeout_node_id' in dialog_def:
-                prompt_node.timeout_node_id = dialog_def['timeout_node_id']
+                choice_node.timeout_node_id = dialog_def['timeout_node_id']
 
-            return prompt_node
+            return choice_node
 
         return None
 
@@ -31,6 +31,31 @@ class ExternalChoiceNode(BaseNode):
 
         self.timeout = timeout
         self.timeout_node_id = timeout_node_id
+
+    def prefix_nodes(self, prefix):
+        super().prefix_nodes(prefix)
+
+        if self.timeout_node_id is not None:
+            self.timeout_node_id = prefix + self.timeout_node_id
+
+        for action in self.choice_actions:
+            action['action'] = prefix + action['action']
+
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        if 'next_id' in node_def:
+            del node_def['next_id']
+
+        if self.timeout is not None:
+            node_def['timeout'] = self.timeout
+
+        if self.timeout_node_id is not None:
+            node_def['timeout_node_id'] = self.timeout_node_id
+
+        node_def['actions'] = self.choice_actions
+
+        return node_def
 
     def node_type(self):
         return 'external-choice'

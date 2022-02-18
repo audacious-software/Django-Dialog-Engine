@@ -25,6 +25,13 @@ class InterruptNode(BaseNode):
     def node_type(self):
         return 'interrupt'
 
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        node_def['match_patterns'] = self.match_patterns
+
+        return node_def
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}

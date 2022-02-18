@@ -27,6 +27,18 @@ class CustomNode(BaseNode):
     def node_type(self):
         return 'custom'
 
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        if 'next_id' in node_def:
+            del node_def['next_id']
+
+        node_def['definition'] = self.definition
+        node_def['evaluate'] = self.evaluate_script
+        node_def['actions'] = self.actions_script
+
+        return node_def
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}

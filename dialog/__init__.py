@@ -10,6 +10,7 @@ from .branching_conditions_node import BranchingConditionsNode
 from .branching_prompt_node import BranchingPromptNode
 from .custom_node import CustomNode
 from .echo_node import EchoNode
+from .embed_dialog_node import EmbedDialogNode
 from .end_node import EndNode
 from .external_choice_node import ExternalChoiceNode
 from .http_response_branch_node import HttpResponseBranchNode
@@ -21,4 +22,3 @@ from .pause_node import PauseNode
 from .prompt_node import PromptNode
 from .random_branch_node import RandomBranchNode
 from .time_elapsed_interrupt_node import TimeElapsedInterruptNode
-from .while_node import WhileNode

@@ -47,6 +47,25 @@ class LoopNode(BaseNode):
     def node_type(self):
         return 'loop'
 
+    def prefix_nodes(self, prefix):
+        super().prefix_nodes(prefix)
+
+        if self.loop_node_id is not None:
+            self.loop_node_id = prefix + self.loop_node_id
+
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        if 'next_id' in node_def:
+            del node_def['next_id']
+
+        if self.loop_node_id is not None:
+            node_def['loop_id'] = self.loop_node_id
+
+        node_def['iterations'] = self.iterations
+
+        return node_def
+
     @staticmethod
     def parse(dialog_def):
         if dialog_def['type'] == 'loop':

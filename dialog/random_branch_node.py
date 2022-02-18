@@ -32,6 +32,23 @@ class RandomBranchNode(BaseNode):
     def node_type(self):
         return 'random-branch'
 
+    def prefix_nodes(self, prefix):
+        super().prefix_nodes(prefix)
+
+        for action in self.random_actions:
+            action['action'] = prefix + action['action']
+
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        if 'next_id' in node_def:
+            del node_def['next_id']
+
+        node_def['actions'] = self.random_actions
+        node_def['without_replacement'] = self.without_replacement
+
+        return node_def
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-locals, too-many-branches, too-many-statements
         choices = []
         weights = []

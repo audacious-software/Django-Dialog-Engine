@@ -46,6 +46,31 @@ class PromptNode(BaseNode):
     def node_type(self):
         return 'prompt'
 
+    def prefix_nodes(self, prefix):
+        super().prefix_nodes(prefix)
+
+        if self.timeout_node_id is not None:
+            self.timeout_node_id = prefix + self.timeout_node_id
+
+        if self.invalid_response_node_id is not None:
+            self.invalid_response_node_id = prefix + self.invalid_response_node_id
+
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        if self.timeout is not None:
+            node_def['timeout'] = self.timeout
+
+        if self.timeout_node_id is not None:
+            node_def['timeout_node_id'] = self.timeout_node_id
+
+        if self.invalid_response_node_id is not None:
+            node_def['invalid_response_node_id'] = self.timeout_node_id
+
+        node_def['valid_patterns'] = self.valid_patterns
+
+        return node_def
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}

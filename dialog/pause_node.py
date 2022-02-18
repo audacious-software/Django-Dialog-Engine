@@ -48,3 +48,10 @@ class PauseNode(BaseNode):
             'type': 'pause',
             'duration': self.duration
         }]
+
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        node_def['duration'] = self.duration
+
+        return node_def

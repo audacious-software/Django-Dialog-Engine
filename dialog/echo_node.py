@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long, super-with-arguments
+# pylint: disable=line-too-long, super-with-arguments, no-member
 
 import json
 
@@ -42,3 +42,10 @@ class EchoNode(BaseNode):
             'type': 'echo',
             'message': self.message
         }]
+
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        node_def['message'] = self.message
+
+        return node_def

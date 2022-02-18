@@ -11,7 +11,7 @@ from .models import Dialog, DialogScript, DialogStateTransition
 @admin.register(Dialog)
 class DialogAdmin(admin.ModelAdmin):
     list_display = ('key', 'script', 'started', 'finished', 'finish_reason',)
-    search_fields = ('key', 'dialog_snapshot', 'finish_reason', 'script',)
+    search_fields = ('key', 'dialog_snapshot', 'finish_reason', 'script__name',)
     list_filter = ('started', 'finished', 'finish_reason')
 
 def clone_dialog_scripts(modeladmin, request, queryset): # pylint: disable=unused-argument
@@ -33,8 +33,10 @@ class DialogScriptLabelFilter(admin.SimpleListFilter):
 
         for script in DialogScript.objects.all():
             for label in script.labels_list():
-                if (label in all_labels) is False:
-                    all_labels.append(label)
+                cleaned_label = label.split('|')[-1]
+
+                if (cleaned_label in all_labels) is False:
+                    all_labels.append(cleaned_label)
 
         all_labels.sort()
 
@@ -54,6 +56,8 @@ class DialogScriptLabelFilter(admin.SimpleListFilter):
         query = query | Q(labels__endswith=('\r\n%s' % self.value()))
         query = query | Q(labels__startswith=('%s\r\n' % self.value()))
         query = query | Q(labels__contains=('\r\n%s\r\n' % self.value()))
+        query = query | Q(labels__contains=('|%s\r\n' % self.value()))
+        query = query | Q(labels__endswith=('|%s' % self.value()))
 
         return queryset.filter(query)
 
@@ -61,7 +65,7 @@ class DialogScriptLabelFilter(admin.SimpleListFilter):
 class DialogScriptAdmin(admin.ModelAdmin):
     list_display = ('name', 'identifier', 'created', 'admin_labels',)
     search_fields = ('name', 'identifier', 'definition', 'labels',)
-    list_filter = ('created', DialogScriptLabelFilter,)
+    list_filter = ('created', 'embeddable', DialogScriptLabelFilter,)
     actions = [clone_dialog_scripts]
 
 @admin.register(DialogStateTransition)

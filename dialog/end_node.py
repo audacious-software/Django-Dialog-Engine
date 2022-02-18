@@ -31,3 +31,11 @@ class EndNode(BaseNode):
 
     def next_nodes(self):
         return []
+
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        if 'next_id' in node_def:
+            del node_def['next_id']
+
+        return node_def

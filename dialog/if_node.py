@@ -20,6 +20,19 @@ class IfNode(BaseNode):
     def node_type(self):
         return 'if'
 
+    def prefix_nodes(self, prefix):
+        super().prefix_nodes(prefix)
+
+        self.false_id = prefix + self.false_id
+
+    def node_definition(self):
+        node_def = super().node_definition()
+
+        node_def['all_true'] = self.all_true
+        node_def['false_id'] = self.false_id
+
+        return node_def
+
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-branches, too-many-arguments
         if extras is None:
             extras = {}

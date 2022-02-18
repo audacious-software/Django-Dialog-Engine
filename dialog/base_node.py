@@ -45,6 +45,22 @@ class BaseNode(object):
     def node_type(self): # pylint: disable=no-self-use
         return 'node'
 
+    def replacement_definitions(self, original_definition): # pylint: disable=unused-argument, no-self-use
+        return None
+
+    def prefix_nodes(self, prefix):
+        self.node_id = prefix + self.node_id
+
+        if self.next_node_id is not None:
+            self.next_node_id = prefix + self.next_node_id
+
+    def node_definition(self):
+        return {
+            'type': self.node_type(),
+            'id': self.node_id,
+            'next_id': self.next_node_id
+        }
+
 def fetch_default_logger():
     logger = logging.getLogger('django-dialog-engine')
     logger.setLevel(logging.DEBUG)
