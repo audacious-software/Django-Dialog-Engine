@@ -50,7 +50,7 @@ class PauseNode(BaseNode):
         }]
 
     def node_definition(self):
-        node_def = super().node_definition()
+        node_def = super().node_definition() # pylint: disable=missing-super-argument
 
         node_def['duration'] = self.duration
 

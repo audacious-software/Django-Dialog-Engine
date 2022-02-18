@@ -47,7 +47,7 @@ class PromptNode(BaseNode):
         return 'prompt'
 
     def prefix_nodes(self, prefix):
-        super().prefix_nodes(prefix)
+        super().prefix_nodes(prefix) # pylint: disable=missing-super-argument
 
         if self.timeout_node_id is not None:
             self.timeout_node_id = prefix + self.timeout_node_id
@@ -56,7 +56,7 @@ class PromptNode(BaseNode):
             self.invalid_response_node_id = prefix + self.invalid_response_node_id
 
     def node_definition(self):
-        node_def = super().node_definition()
+        node_def = super().node_definition() # pylint: disable=missing-super-argument
 
         if self.timeout is not None:
             node_def['timeout'] = self.timeout

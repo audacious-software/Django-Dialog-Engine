@@ -26,7 +26,7 @@ class InterruptNode(BaseNode):
         return 'interrupt'
 
     def node_definition(self):
-        node_def = super().node_definition()
+        node_def = super().node_definition() # pylint: disable=missing-super-argument
 
         node_def['match_patterns'] = self.match_patterns
 

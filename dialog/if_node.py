@@ -21,12 +21,12 @@ class IfNode(BaseNode):
         return 'if'
 
     def prefix_nodes(self, prefix):
-        super().prefix_nodes(prefix)
+        super().prefix_nodes(prefix) # pylint: disable=missing-super-argument
 
         self.false_id = prefix + self.false_id
 
     def node_definition(self):
-        node_def = super().node_definition()
+        node_def = super().node_definition() # pylint: disable=missing-super-argument
 
         node_def['all_true'] = self.all_true
         node_def['false_id'] = self.false_id

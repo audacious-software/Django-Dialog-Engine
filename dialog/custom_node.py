@@ -30,7 +30,7 @@ class CustomNode(BaseNode):
         return 'custom'
 
     def node_definition(self):
-        node_def = super().node_definition()
+        node_def = super().node_definition() # pylint: disable=missing-super-argument
 
         if 'next_id' in node_def:
             del node_def['next_id']

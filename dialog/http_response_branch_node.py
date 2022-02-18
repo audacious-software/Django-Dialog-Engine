@@ -81,7 +81,7 @@ class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attr
         self.pattern_matcher = pattern_matcher
 
     def prefix_nodes(self, prefix):
-        super().prefix_nodes(prefix)
+        super().prefix_nodes(prefix) # pylint: disable=missing-super-argument
 
         if self.timeout_node_id is not None:
             self.timeout_node_id = prefix + self.timeout_node_id
@@ -93,7 +93,7 @@ class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attr
             action['action'] = prefix + action['action']
 
     def node_definition(self):
-        node_def = super().node_definition()
+        node_def = super().node_definition() # pylint: disable=missing-super-argument
 
         if 'next_id' in node_def:
             del node_def['next_id']

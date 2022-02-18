@@ -123,7 +123,7 @@ class DialogScript(models.Model):
         return sys.maxsize
 
     def admin_labels(self):
-        class Meta: # pylint: disable=too-few-public-methods, unused-variable
+        class Meta: # pylint: disable=too-few-public-methods, unused-variable, old-style-class, no-init
             verbose_name = _('Script labels')
 
         if self.labels is None:
@@ -459,7 +459,7 @@ def initialize_dialog(sender, instance, created, **kwargs): # pylint: disable=un
             if replacement_nodes is not None:
                 replacements.append((node, replacement_nodes,))
 
-        if len(replacements) == 0: # No more replacements to be made
+        if len(replacements) == 0: # pylint: disable=len-as-condition
             break
 
         for replacement in replacements:

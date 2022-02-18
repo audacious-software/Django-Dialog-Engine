@@ -48,13 +48,13 @@ class LoopNode(BaseNode):
         return 'loop'
 
     def prefix_nodes(self, prefix):
-        super().prefix_nodes(prefix)
+        super().prefix_nodes(prefix) # pylint: disable=missing-super-argument
 
         if self.loop_node_id is not None:
             self.loop_node_id = prefix + self.loop_node_id
 
     def node_definition(self):
-        node_def = super().node_definition()
+        node_def = super().node_definition() # pylint: disable=missing-super-argument
 
         if 'next_id' in node_def:
             del node_def['next_id']

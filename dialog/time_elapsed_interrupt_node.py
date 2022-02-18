@@ -30,7 +30,7 @@ class TimeElapsedInterruptNode(BaseNode):
         return 'time-elapsed-interrupt'
 
     def node_definition(self):
-        node_def = super().node_definition()
+        node_def = super().node_definition() # pylint: disable=missing-super-argument
 
         node_def['hours_elapsed'] = self.hours_elapsed
         node_def['minutes_elapsed'] = self.minutes_elapsed
