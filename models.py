@@ -438,7 +438,7 @@ class Dialog(models.Model):
 
 @receiver(post_save, sender=Dialog)
 def initialize_dialog(sender, instance, created, **kwargs): # pylint: disable=unused-argument, too-many-locals, too-many-branches
-    while True:
+    while created is True:
         for app in settings.INSTALLED_APPS:
             try:
                 dialog_module = importlib.import_module('.dialog_api', package=app)
