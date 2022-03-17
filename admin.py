@@ -53,10 +53,10 @@ class DialogScriptLabelFilter(admin.SimpleListFilter):
 
         query = Q(labels=self.value())
 
-        query = query | Q(labels__endswith=('\r\n%s' % self.value()))
-        query = query | Q(labels__startswith=('%s\r\n' % self.value()))
-        query = query | Q(labels__contains=('\r\n%s\r\n' % self.value()))
-        query = query | Q(labels__contains=('|%s\r\n' % self.value()))
+        query = query | Q(labels__endswith=('\n%s' % self.value()))
+        query = query | Q(labels__startswith=('%s\n' % self.value()))
+        query = query | Q(labels__contains=('\n%s\n' % self.value()))
+        query = query | Q(labels__contains=('|%s\n' % self.value()))
         query = query | Q(labels__endswith=('|%s' % self.value()))
 
         return queryset.filter(query)

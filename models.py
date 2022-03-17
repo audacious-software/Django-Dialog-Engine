@@ -109,6 +109,19 @@ class DialogScript(models.Model):
 
         return cleaned_labels
 
+    def add_label(self, label):
+        if self.labels is None or self.labels.strip() == '':
+            self.labels = label
+        else:
+            labels = self.labels.splitlines()
+
+            if (label in labels) is False:
+                labels.append(label)
+
+            self.labels = '\n'.join(labels)
+
+        self.save()
+
     def priority_for_label(self, label):
         label_suffix = '|%s' % label
 
