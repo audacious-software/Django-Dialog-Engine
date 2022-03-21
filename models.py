@@ -109,6 +109,19 @@ class DialogScript(models.Model):
 
         return cleaned_labels
 
+    def add_label(self, label):
+        if self.labels is None or self.labels.strip() == '':
+            self.labels = label
+        else:
+            labels = self.labels.splitlines()
+
+            if (label in labels) is False:
+                labels.append(label)
+
+            self.labels = '\n'.join(labels)
+
+        self.save()
+
     def priority_for_label(self, label):
         label_suffix = '|%s' % label
 
@@ -438,7 +451,7 @@ class Dialog(models.Model):
 
 @receiver(post_save, sender=Dialog)
 def initialize_dialog(sender, instance, created, **kwargs): # pylint: disable=unused-argument, too-many-locals, too-many-branches
-    while True:
+    while created is True:
         for app in settings.INSTALLED_APPS:
             try:
                 dialog_module = importlib.import_module('.dialog_api', package=app)
