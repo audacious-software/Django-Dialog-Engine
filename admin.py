@@ -55,8 +55,6 @@ class DialogScriptLabelFilter(admin.SimpleListFilter):
 
         query = query | Q(labels__contains=('|%s' % self.value()))
 
-        print('Q: %s' % query)
-
         return queryset.filter(query)
 
 @admin.register(DialogScript)
