@@ -51,13 +51,11 @@ class DialogScriptLabelFilter(admin.SimpleListFilter):
         if self.value() is None:
             return queryset
 
-        query = Q(labels=self.value())
+        query = Q(labels__contains=self.value())
 
-        query = query | Q(labels__endswith=('\n%s' % self.value()))
-        query = query | Q(labels__startswith=('%s\n' % self.value()))
-        query = query | Q(labels__contains=('\n%s\n' % self.value()))
-        query = query | Q(labels__contains=('|%s\n' % self.value()))
-        query = query | Q(labels__endswith=('|%s' % self.value()))
+        query = query | Q(labels__contains=('|%s' % self.value()))
+
+        print('Q: %s' % query)
 
         return queryset.filter(query)
 
