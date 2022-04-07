@@ -14,7 +14,7 @@ jobs:
   build-38:
     docker:
       - image: cimg/python:3.8
-      - image: circleci/postgres:9.6.9-postgis
+      - image: cimg/postgres:9.6.24-postgis
         auth:
           username: mydockerhub-user
           password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference

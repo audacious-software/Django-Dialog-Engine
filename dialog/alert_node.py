@@ -39,9 +39,9 @@ class AlertNode(BaseNode):
 
     def actions(self):
         return[{
-			'type': 'store-value',
-			'key': self.key,
-			'value': self.value # TODO: Templatize?
+            'type': 'store-value',
+            'key': self.key,
+            'value': self.value # TODO: Templatize?
         }]
 
     def node_definition(self):
