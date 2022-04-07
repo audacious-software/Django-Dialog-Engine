@@ -1,0 +1,9 @@
+<input type="text" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
+<script>
+	django.jQuery(document).ready(function() {
+		django.jQuery('input[name="{{ widget.name }}"]').parent().css('padding-left', '2em')
+		django.jQuery('input[name="{{ widget.name }}"]').css('margin-left', '10px')
+		django.jQuery('input[name="{{ widget.name }}"]').css('margin-right', '20px')
+		django.jQuery('input[name="{{ widget.name }}"]').css('padding', '2px 5px')
+	})
+</script>

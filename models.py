@@ -107,20 +107,59 @@ class DialogScript(models.Model):
 
             cleaned_labels.append(tokens[-1])
 
+        cleaned_labels.sort()
+
         return cleaned_labels
 
     def add_label(self, label):
         if self.labels is None or self.labels.strip() == '':
             self.labels = label
         else:
+            label_core = label.split('|')[-1]
+
+            new_labels = []
+
             labels = self.labels.splitlines()
 
-            if (label in labels) is False:
-                labels.append(label)
+            for existing_label in labels:
+                existing_core = existing_label.split('|')[-1]
 
-            self.labels = '\n'.join(labels)
+                if label_core != existing_core:
+                    new_labels.append(existing_label)
+
+            new_labels.append(label)
+
+            self.labels = '\n'.join(new_labels)
 
         self.save()
+
+        return True
+
+    def clear_label(self, label):
+        label_core = label.split('|')[-1]
+
+        new_labels = []
+
+        if self.labels is None:
+            self.labels = ''
+
+        labels = self.labels.splitlines()
+
+        updated = False
+
+        for existing_label in labels:
+            existing_core = existing_label.split('|')[-1]
+
+            if label_core != existing_core:
+                new_labels.append(existing_label)
+            else:
+                updated = True
+
+        self.labels = '\n'.join(new_labels)
+
+        self.save()
+
+        return updated
 
     def priority_for_label(self, label):
         label_suffix = '|%s' % label

@@ -55,7 +55,7 @@ class InterruptNode(BaseNode):
             return None
 
         for match_pattern in self.match_patterns:
-            if re.search(match_pattern, response) is not None:
+            if re.search(match_pattern, response, re.IGNORECASE) is not None:
                 return match_pattern
 
         return None

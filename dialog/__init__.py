@@ -21,4 +21,5 @@ from .loop_node import LoopNode
 from .pause_node import PauseNode
 from .prompt_node import PromptNode
 from .random_branch_node import RandomBranchNode
+from .record_variable_node import RecordVariableNode
 from .time_elapsed_interrupt_node import TimeElapsedInterruptNode
