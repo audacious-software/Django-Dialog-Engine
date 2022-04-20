@@ -2,7 +2,9 @@
 
 import traceback
 
-from .base_node import BaseNode, fetch_default_logger
+import six
+
+from .base_node import BaseNode, DialogError, fetch_default_logger
 from .dialog_machine import DialogTransition
 
 class BranchingConditionsNode(BaseNode):
@@ -92,16 +94,37 @@ class BranchingConditionsNode(BaseNode):
                 local_env = extras.copy()
                 local_env['logger'] = logger
 
-                result = eval(conditional_action['condition'], {}, extras) # nosec
+                try:
+                    result = eval(conditional_action['condition'], {}, extras) # nosec
 
-                if result: # nosec # pylint: disable=eval-used
-                    transition = DialogTransition(new_state_id=conditional_action['action'])
+                    if result: # nosec # pylint: disable=eval-used
+                        transition = DialogTransition(new_state_id=conditional_action['action'])
 
-                    transition.metadata['reason'] = 'matched-condition'
-                    transition.metadata['condition'] = conditional_action['condition']
-                    transition.metadata['exit_actions'] = []
+                        transition.metadata['reason'] = 'matched-condition'
+                        transition.metadata['condition'] = conditional_action['condition']
+                        transition.metadata['exit_actions'] = []
 
-                    return transition
+                        return transition
+                except NameError as name_exc:
+                    test_condition = conditional_action['condition']
+                    test_condition = test_condition.replace('(', ' ')
+                    test_condition = test_condition.replace(')', ' ')
+                    test_condition = test_condition.replace('.', ' ')
+                    test_condition = test_condition.replace('[', ' ')
+                    test_condition = test_condition.replace(']', ' ')
+                    test_condition = test_condition.replace('=', ' ')
+                    test_condition = test_condition.replace('>', ' ')
+                    test_condition = test_condition.replace('<', ' ')
+
+                    tokens = test_condition.split(' ')
+
+                    if len(tokens) == 1: # Undefined variable
+                        transition = DialogTransition(new_state_id=self.no_match_node_id)
+                        transition.metadata['reason'] = 'no-matching-conditions'
+
+                        return transition
+
+                    six.raise_from(DialogError('Error in condition: %s' % conditional_action['condition']), name_exc)
         except: # pylint: disable=bare-except
             traceback.print_exc()
 

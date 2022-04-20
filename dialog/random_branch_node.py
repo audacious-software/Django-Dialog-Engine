@@ -1,6 +1,7 @@
 # pylint: disable=line-too-long, super-with-arguments
 
 import copy
+import json
 
 import numpy
 
@@ -90,7 +91,9 @@ class RandomBranchNode(BaseNode):
         if self.without_replacement and extras is not None:
             key = '__%s_prior_choices' % self.node_id
 
-            for prior_choice in extras.get(key, []):
+            extras[key] = json.loads(extras.get(key, '[]'))
+
+            for prior_choice in extras[key]:
                 try:
                     index = choices.index(prior_choice)
 
@@ -135,6 +138,12 @@ class RandomBranchNode(BaseNode):
                 extras[key] = []
 
             transition.metadata['prior_choices'] = extras[key]
+
+            transition.metadata['exit_actions'] = [{
+                'type': 'store-value',
+                'key': key,
+                'value': json.dumps(extras[key])
+            }]
 
         return transition
 
