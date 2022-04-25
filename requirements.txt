@@ -4,7 +4,7 @@ bandit==1.7.3; python_version >= '3.7'
 bandit==1.7.1; python_version == '3.6'
 bandit==1.6.2; python_version < '3.0'
 Django==1.11.29; python_version < '3.0'
-Django==3.2.12; python_version >= '3.0'
+Django==3.2.13; python_version >= '3.0'
 future==0.18.2
 jsonpath-ng==1.5.3
 lxml==4.6.5
