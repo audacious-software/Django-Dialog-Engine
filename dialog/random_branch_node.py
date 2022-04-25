@@ -91,7 +91,8 @@ class RandomBranchNode(BaseNode):
         if self.without_replacement and extras is not None:
             key = '__%s_prior_choices' % self.node_id
 
-            extras[key] = json.loads(extras.get(key, '[]'))
+            if (key in extras) is False:
+                extras[key] = []
 
             for prior_choice in extras[key]:
                 try:
