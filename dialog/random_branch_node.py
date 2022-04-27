@@ -1,5 +1,7 @@
 # pylint: disable=line-too-long, super-with-arguments
 
+from builtins import str # pylint: disable=redefined-builtin
+
 import copy
 import json
 
@@ -132,6 +134,9 @@ class RandomBranchNode(BaseNode):
 
             if extras.get(key, None) is None:
                 extras[key] = []
+
+            if isinstance(extras[key], str):
+                extras[key] = json.loads(extras[key])
 
             if len(choices) > 1:
                 extras[key].append(chosen)

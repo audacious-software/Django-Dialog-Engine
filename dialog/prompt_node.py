@@ -121,7 +121,7 @@ class PromptNode(BaseNode):
             transition.metadata['valid_patterns'] = self.valid_patterns
             transition.metadata['exit_actions'] = [{
                 'type': 'store-value',
-                'key': self.node_id,
+                'key': self.node_id.split('__')[-1],
                 'value': response
             }]
 
