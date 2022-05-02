@@ -2,8 +2,6 @@
 
 import traceback
 
-import six
-
 from .base_node import BaseNode, DialogError, fetch_default_logger
 from .dialog_machine import DialogTransition
 
@@ -124,7 +122,7 @@ class BranchingConditionsNode(BaseNode):
 
                         return transition
 
-                    six.raise_from(DialogError('Error in condition: %s' % conditional_action['condition']), name_exc)
+                    raise DialogError('Error in condition: %s --- %s' % (conditional_action['condition'], name_exc)) # pylint: disable=raise-missing-from
         except: # pylint: disable=bare-except
             traceback.print_exc()
 
