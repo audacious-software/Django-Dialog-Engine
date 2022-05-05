@@ -108,6 +108,8 @@ class BranchingPromptNode(BaseNode):
         if response is not None: # pylint: disable=no-else-return
             matched_action = None
 
+            response = response.strip()
+
             for action in self.pattern_actions:
                 if matched_action is None and re.search(action['pattern'], response, re.IGNORECASE) is not None:
                     matched_action = action
