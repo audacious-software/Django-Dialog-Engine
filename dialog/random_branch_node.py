@@ -96,6 +96,9 @@ class RandomBranchNode(BaseNode):
             if (key in extras) is False:
                 extras[key] = []
 
+            if isinstance(extras[key], str):
+                extras[key] = json.loads(extras[key])
+
             for prior_choice in extras[key]:
                 try:
                     index = choices.index(prior_choice)
