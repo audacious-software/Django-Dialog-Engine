@@ -20,7 +20,7 @@ class Command(BaseCommand):
         parser.add_argument('query', type=str)
 
     def handle(self, *args, **options): # pylint: disable=too-many-branches
-        query =  options['query']
+        query = options['query']
 
         scripts = DialogScript.objects.all()
 
