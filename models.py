@@ -314,11 +314,7 @@ class Dialog(models.Model):
         last_transition = self.transitions.order_by('-when').first()
 
         try:
-            print('INITING DialogMachine')
-
             dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata, django_object=self)
-
-            print('INITED DialogMachine: %s' % dialog_machine)
 
             if last_transition is not None:
                 dialog_machine.advance_to(last_transition.state_id)
@@ -330,18 +326,12 @@ class Dialog(models.Model):
             except AttributeError:
                 pass
 
-            print('START TRANSITION: %s' % dialog_machine)
-
             transition = dialog_machine.evaluate(response=response, last_transition=last_transition, extras=extras, logger=logger)
-
-            print('TRANSITION: %s' % transition)
 
             if transition is None:
                 pass # Nothing to do
             elif last_transition is None or last_transition.state_id != transition.new_state_id or transition.refresh is True:
                 new_actions = []
-
-                print('TRANSITION NEW: %s' % transition.new_state_id)
 
                 if transition.new_state_id is None:
                     self.finished = timezone.now()
