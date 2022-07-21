@@ -3,8 +3,6 @@
 
 from __future__ import print_function
 
-from builtins import str # pylint: disable=redefined-builtin
-
 import json
 
 import objectpath
@@ -14,7 +12,7 @@ from django.core.management.base import BaseCommand
 from ...models import DialogScript
 
 class Command(BaseCommand):
-    help = 'Queries DialogScript objects for nodes matching provided ObjectPath query'
+    help = 'Queries DialogScript objects for nodes matching provided ObjectPath query. Reference: http://objectpath.org/reference.html'
 
     def add_arguments(self, parser):
         parser.add_argument('query', type=str)
