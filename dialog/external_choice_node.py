@@ -11,11 +11,12 @@ class ExternalChoiceNode(BaseNode):
         if dialog_def['type'] == 'external-choice':
             choice_node = ExternalChoiceNode(dialog_def['id'], dialog_def['actions'])
 
-            if 'timeout' in dialog_def:
-                choice_node.timeout = dialog_def['timeout']
+            timeout = dialog_def.get('timeout', None)
+            timeout_node_id = dialog_def.get('timeout_node_id', None)
 
-            if 'timeout_node_id' in dialog_def:
-                choice_node.timeout_node_id = dialog_def['timeout_node_id']
+            if timeout is not None and timeout_node_id is not None:
+                choice_node.timeout = timeout
+                choice_node.timeout_node_id = timeout_node_id
 
             return choice_node
 

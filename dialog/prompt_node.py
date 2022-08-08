@@ -13,11 +13,12 @@ class PromptNode(BaseNode):
         if dialog_def['type'] == 'prompt':
             prompt_node = PromptNode(dialog_def['id'], dialog_def['next_id'], dialog_def['prompt'])
 
-            if 'timeout' in dialog_def:
-                prompt_node.timeout = dialog_def['timeout']
+            timeout = dialog_def.get('timeout', None)
+            timeout_node_id = dialog_def.get('timeout_node_id', None)
 
-            if 'timeout_node_id' in dialog_def:
-                prompt_node.timeout_node_id = dialog_def['timeout_node_id']
+            if timeout is not None and timeout_node_id is not None:
+                prompt_node.timeout = timeout
+                prompt_node.timeout_node_id = timeout_node_id
 
             if 'invalid_response_node_id' in dialog_def:
                 prompt_node.invalid_response_node_id = dialog_def['invalid_response_node_id']

@@ -20,14 +20,15 @@ class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attr
             if 'no_match' in dialog_def:
                 prompt_node.invalid_response_node_id = dialog_def['no_match']
 
-            if 'timeout' in dialog_def:
-                prompt_node.timeout = dialog_def['timeout']
+            timeout = dialog_def.get('timeout', None)
+            timeout_node_id = dialog_def.get('timeout_node_id', None)
 
-            if 'timeout_iterations' in dialog_def:
-                prompt_node.timeout_iterations = dialog_def['timeout_iterations']
+            if timeout is not None and timeout_node_id is not None:
+                prompt_node.timeout = timeout
+                prompt_node.timeout_node_id = timeout_node_id
 
-            if 'timeout_node_id' in dialog_def:
-                prompt_node.timeout_node_id = dialog_def['timeout_node_id']
+                if 'timeout_iterations' in dialog_def:
+                    prompt_node.timeout_iterations = dialog_def['timeout_iterations']
 
             if 'method' in dialog_def:
                 prompt_node.method = dialog_def['method']
