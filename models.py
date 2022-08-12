@@ -355,7 +355,11 @@ class Dialog(models.Model):
                     if new_actions is None:
                         new_actions = []
 
-                new_actions = apply_template(new_actions, self.metadata)
+                actions_metadata = self.metadata.copy()
+
+                actions_metadata.update(extras)
+
+                new_actions = apply_template(new_actions, actions_metadata)
 
                 actions.extend(new_actions)
 
