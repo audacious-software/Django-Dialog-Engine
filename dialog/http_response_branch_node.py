@@ -167,12 +167,12 @@ class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attr
                 if self.timeout_node_id is not None:
                     response = requests.post(self.url, headers=headers, data=parameters, timeout=self.timeout)
                 else:
-                    response = requests.post(self.url, headers=headers, data=parameters)
+                    response = requests.post(self.url, headers=headers, data=parameters, timeout=300)
             else:
                 if self.timeout_node_id is not None:
                     response = requests.get(self.url, headers=headers, data=parameters, timeout=self.timeout)
                 else:
-                    response = requests.get(self.url, headers=headers, data=parameters)
+                    response = requests.get(self.url, headers=headers, data=parameters, timeout=300)
 
             if response.status_code >= 200 and response.status_code < 300: # Valid response
                 matched_action = None
