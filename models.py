@@ -192,6 +192,9 @@ class DialogScript(models.Model):
         return '/admin/django_dialog_engine/dialogscript/' + str(self.pk) + '/change'
 
     def size(self):
+        if self.definition is None:
+            return 0
+
         return len(self.definition)
 
     def last_started(self):
