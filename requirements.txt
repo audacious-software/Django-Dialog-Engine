@@ -10,7 +10,7 @@ jsonpath-ng==1.5.3
 lxml==4.9.1
 numpy==1.16.6; python_version < '3.0'
 numpy==1.19.5; python_version == '3.6'
-numpy==1.21.6; python_version == '3.7'
+numpy==1.23.3; python_version == '3.7'
 numpy==1.23.3; python_version >= '3.8'
 objectpath==0.6.1
 psycopg2-binary==2.8.6; python_version < '3.0'
