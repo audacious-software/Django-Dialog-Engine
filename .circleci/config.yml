@@ -232,6 +232,8 @@ jobs:
             . /home/circleci/venv/bin/activate
             cd ..
             cd django/dde
+            nvm install 17.9.1
+            nvm use 17.9.1
             npm install -g -s botium-cli botium-core
             export BOTIUM_DDE_DIALOG_SCRIPT_PATH="./django_dialog_engine/botium/dialog_scripts/hello_world.json"
             export BOTIUM_DDE_DIALOG_USER_ID="circle-ci:tester"
