@@ -49,7 +49,7 @@ class Command(BaseCommand):
             actions = dialog.process()
 
             def handler(signum, frame): # pylint: disable=unused-argument
-                raise Exception("Timeout!") # pylint: disable=broad-except
+                raise DialogError("Timeout!")
 
             signal.signal(signal.SIGALRM, handler)
 
