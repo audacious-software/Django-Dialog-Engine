@@ -1,6 +1,6 @@
 # pylint: disable=line-too-long, super-with-arguments
 
-from .base_node import BaseNode, fetch_default_logger
+from .base_node import BaseNode, fetch_default_logger, DialogError
 from .dialog_machine import DialogTransition
 
 class IfNode(BaseNode):
@@ -52,7 +52,7 @@ class IfNode(BaseNode):
                     value = dialog.metadata['values'][key]
 
             if value is None:
-                raise Exception('No value for "' + key + '" in dialog metadata. The ordering of the dialog may be incorrect!')
+                raise DialogError('No value for "%s" in dialog metadata. The ordering of the dialog may be incorrect!' % key)
 
             if condition['condition'] == '<':
                 if float(value) >= float(condition['value']):

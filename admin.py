@@ -56,7 +56,7 @@ class DialogScriptLabelFilter(admin.SimpleListFilter):
 
         query = Q(labels__contains=self.value())
 
-        query = query | Q(labels__contains=('|%s' % self.value()))
+        query = query | Q(labels__contains=('|%s' % self.value())) # pylint: disable=superfluous-parens
 
         return queryset.filter(query)
 
@@ -74,7 +74,7 @@ class DialogScriptArchiveFilter(admin.SimpleListFilter):
 
         query = Q(labels__contains='archived')
 
-        query = query | Q(labels__contains=('|archived'))
+        query = query | Q(labels__contains='|archived')
 
         if self.value() == 'not_archived':
             return queryset.exclude(query)

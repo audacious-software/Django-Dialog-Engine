@@ -8,7 +8,7 @@ from past.builtins import basestring # pylint: disable=redefined-builtin
 
 from django.utils.encoding import smart_str
 
-from .base_node import BaseNode, fetch_default_logger
+from .base_node import BaseNode, fetch_default_logger, DialogError
 from .dialog_machine import DialogTransition
 
 class CustomNode(BaseNode):
@@ -87,7 +87,7 @@ class CustomNode(BaseNode):
                 if result['actions'] is not None:
                     for action in result['actions']:
                         if isinstance(action['type'], basestring) is False:
-                            raise Exception(str(action) + ' is not a valid action. Verify that the "type" key is present and is a string.')
+                            raise DialogError('%s is not a valid action. Verify that the "type" key is present and is a string.' % action)
 
                     transition.metadata['exit_actions'] = result['actions']
                 else:
@@ -117,7 +117,7 @@ class CustomNode(BaseNode):
 
             for action in custom_actions:
                 if isinstance(action['type'], basestring) is False:
-                    raise Exception(str(action) + ' is not a valid action. Verify that the "type" key is present and is a string.')
+                    raise DialogError('%s is not a valid action. Verify that the "type" key is present and is a string.' % action)
 
             return custom_actions
         except: # pylint: disable=bare-except

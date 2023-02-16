@@ -16,6 +16,7 @@ from future import standard_library
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from ...dialog.base_node import DialogError
 from ...models import DialogScript, Dialog
 
 standard_library.install_aliases()
@@ -79,8 +80,8 @@ class Command(BaseCommand):
                     elif action['type'] == 'store-value':
                         print('STORE: ' + str(action['key']) + ' = ' + str(action['value']))
                     else:
-                        raise Exception('Unknown action: ' + json.dumps(action))
+                        raise DialogError('Unknown action: %s' % json.dumps(action))
 
-                print('    PROCESS: ' + str(input_str))
+                print('    PROCESS: %s' % input_str)
 
                 actions = dialog.process(input_str)
