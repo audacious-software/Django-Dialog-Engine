@@ -113,7 +113,7 @@ class CustomNode(BaseNode):
 
             custom_actions = []
 
-            eval(code, {}, {'definition': self.definition, 'actions': custom_actions}) # pylint: disable=eval-used
+            eval(code, {}, {'definition': self.definition, 'actions': custom_actions}) # pylint: disable=eval-used #nosec B307
 
             for action in custom_actions:
                 if isinstance(action['type'], basestring) is False:
