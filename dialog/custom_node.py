@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long, super-with-arguments
+# pylint: disable=line-too-long, super-with-arguments, eval-used
 
 from __future__ import print_function
 
@@ -107,7 +107,7 @@ class CustomNode(BaseNode):
 
         return None
 
-    def actions(self): # pylint: disable=eval-used
+    def actions(self):
         try:
             code = compile(self.actions_script, '<string>', 'exec')
 
