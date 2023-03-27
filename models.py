@@ -576,9 +576,9 @@ def initialize_dialog(sender, instance, created, **kwargs): # pylint: disable=un
 class DialogStateTransition(models.Model):
     dialog = models.ForeignKey(Dialog, related_name='transitions', null=True, on_delete=models.SET_NULL)
 
-    when = models.DateTimeField()
-    state_id = models.CharField(max_length=128)
-    prior_state_id = models.CharField(max_length=128, null=True, blank=True)
+    when = models.DateTimeField(db_index=True)
+    state_id = models.CharField(max_length=128, db_index=True)
+    prior_state_id = models.CharField(max_length=128, null=True, blank=True, db_index=True)
 
     metadata = JSONField(default=dict)
 

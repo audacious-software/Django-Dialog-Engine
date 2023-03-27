@@ -30,16 +30,16 @@ class DialogMachine(object):
 
         self.metadata = metadata
 
+        for app in settings.INSTALLED_APPS:
+            try:
+                importlib.import_module(app + '.dialog_api')
+            except ImportError:
+                pass
+            except AttributeError:
+                pass
+
         for node_def in definition:
             node = None
-
-            for app in settings.INSTALLED_APPS:
-                try:
-                    importlib.import_module(app + '.dialog_api')
-                except ImportError:
-                    pass
-                except AttributeError:
-                    pass
 
             for cls in BaseNode.__subclasses__():
                 if node is None:
