@@ -26,7 +26,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_dialog_engine'
+    'prettyjson',
+    'django_dialog_engine',
 )
 
 MIDDLEWARE = (

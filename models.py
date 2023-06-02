@@ -23,6 +23,7 @@ try:
 except ImportError:
     from django.contrib.postgres.fields import JSONField
 
+from django.core.checks import Warning, register # pylint: disable=redefined-builtin
 from django.db import models
 from django.template import Template, Context
 from django.urls import reverse
@@ -89,6 +90,19 @@ class DialogScript(models.Model):
             return True
 
         return False
+
+    def is_archived(self):
+        if self.labels is None:
+            return False
+
+        for label in self.labels.splitlines():
+            if label.strip() == 'archived':
+                return True
+
+        return False
+
+    def is_active(self):
+        return self.is_archived() is False
 
     def definition_json(self):
         return mark_safe(json.dumps(self.definition))
@@ -252,6 +266,21 @@ class DialogScript(models.Model):
             self.broadcast_changes(changed_fields)
 
         super(DialogScript, self).save(*args, **kwargs) # pylint: disable=super-with-arguments
+
+    def issues(self):
+        issues = []
+
+        for app in settings.INSTALLED_APPS:
+            try:
+                dialog_module = importlib.import_module('.dialog_api', package=app)
+
+                issues.extend(dialog_module.identify_script_issues(self))
+            except ImportError:
+                pass # traceback.print_exc()
+            except AttributeError:
+                pass # traceback.print_exc()
+
+        return issues
 
 @python_2_unicode_compatible
 class Dialog(models.Model):
@@ -571,7 +600,6 @@ def initialize_dialog(sender, instance, created, **kwargs): # pylint: disable=un
 
             instance.save()
 
-
 @python_2_unicode_compatible
 class DialogStateTransition(models.Model):
     dialog = models.ForeignKey(Dialog, related_name='transitions', null=True, on_delete=models.SET_NULL)
@@ -590,3 +618,13 @@ class DialogStateTransition(models.Model):
             return self.metadata['actions']
 
         return []
+
+@register()
+def check_prettyjson_installed(app_configs, **kwargs): # pylint: disable=unused-argument
+    errors = []
+
+    if ('prettyjson' in settings.INSTALLED_APPS) is False:
+        error = Warning('"prettyjson" not found in settings.INSTALLED_APPS', hint='Add "prettyjson" to settings.INSTALLED_APPS.', obj=None, id='django_dialog_engine.W001')
+        errors.append(error)
+
+    return errors

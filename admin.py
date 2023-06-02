@@ -3,11 +3,18 @@
 
 from __future__ import unicode_literals
 
+from prettyjson import PrettyJSONWidget
+
 from django import forms
 
 from django.contrib import admin
 from django.contrib.admin.helpers import ActionForm
 from django.db.models import Q
+
+try:
+    from django.db.models import JSONField
+except ImportError:
+    from django.contrib.postgres.fields import JSONField
 
 from .models import Dialog, DialogScript, DialogStateTransition
 
@@ -16,6 +23,10 @@ class DialogAdmin(admin.ModelAdmin):
     list_display = ('key', 'script', 'started', 'finished', 'finish_reason',)
     search_fields = ('key', 'dialog_snapshot', 'finish_reason', 'script__name',)
     list_filter = ('started', 'finished', 'finish_reason')
+
+    formfield_overrides = {
+        JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'}) }
+    }
 
 def clone_dialog_scripts(modeladmin, request, queryset): # pylint: disable=unused-argument
     for item in queryset:
@@ -74,8 +85,6 @@ class DialogScriptArchiveFilter(admin.SimpleListFilter):
 
         query = Q(labels__contains='archived')
 
-        query = query | Q(labels__contains='|archived')
-
         if self.value() == 'not_archived':
             return queryset.exclude(query)
 
@@ -98,6 +107,10 @@ class DialogScriptAdmin(admin.ModelAdmin):
     list_display = ('name', 'identifier', 'size', 'created', 'admin_labels',)
     search_fields = ('name', 'identifier', 'definition', 'labels',)
     list_filter = (DialogScriptArchiveFilter, 'created', 'embeddable', DialogScriptLabelFilter,)
+
+    formfield_overrides = {
+        JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'}) }
+    }
 
     def add_label(self, request, queryset):
         label = request.POST.get('label_field', None)
@@ -149,3 +162,7 @@ class DialogScriptAdmin(admin.ModelAdmin):
 class DialogStateTransitionAdmin(admin.ModelAdmin):
     list_display = ('dialog', 'when', 'state_id', 'prior_state_id')
     list_filter = ('when',)
+
+    formfield_overrides = {
+        JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'}) }
+    }
