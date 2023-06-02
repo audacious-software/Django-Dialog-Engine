@@ -1,4 +1,4 @@
-# pylint: disable=no-member, line-too-long
+# pylint: disable=no-member, line-too-long, len-as-condition
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
