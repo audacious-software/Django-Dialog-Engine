@@ -2,10 +2,12 @@
 
 from __future__ import print_function
 
+import importlib
 import traceback
 
 from past.builtins import basestring # pylint: disable=redefined-builtin
 
+from django.conf import settings
 from django.utils.encoding import smart_str
 
 from .base_node import BaseNode, fetch_default_logger, DialogError
@@ -74,6 +76,16 @@ class CustomNode(BaseNode):
             'logger': logger
         }
 
+        for app in settings.INSTALLED_APPS:
+            try:
+                app_dialog_api = importlib.import_module(app + '.dialog_api')
+
+                app_dialog_api.update_custom_node_environment(local_env)
+            except ImportError:
+                pass
+            except AttributeError:
+                pass
+
         try:
             code = compile(smart_str(self.evaluate_script), '<string>', 'exec')
 
@@ -103,7 +115,6 @@ class CustomNode(BaseNode):
             transition.metadata['error'] = traceback.format_exc()
 
             return transition
-
 
         return None
 
