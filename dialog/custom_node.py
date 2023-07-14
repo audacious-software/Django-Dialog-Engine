@@ -43,7 +43,7 @@ class CustomNode(BaseNode):
 
         return node_def
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-branches
         if extras is None:
             extras = {}
 
