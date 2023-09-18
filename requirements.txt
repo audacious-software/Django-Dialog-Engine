@@ -7,7 +7,7 @@ Django==1.11.29; python_version < '3.0'
 Django==3.2.20; python_version >= '3.0'
 django-prettyjson==0.4.1
 future==0.18.3
-jsonpath-ng==1.5.3
+jsonpath-ng==1.6.0
 lxml==4.9.3
 numpy==1.16.6; python_version < '3.0'
 numpy==1.19.5; python_version == '3.6'
