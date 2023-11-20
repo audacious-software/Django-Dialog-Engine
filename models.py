@@ -46,7 +46,15 @@ _ = gettext.gettext
 
 def apply_template(obj, context_dict):
     if isinstance(obj, str):
-        template = Template(obj)
+        prefix = ''
+
+        try:
+            for template_load in settings.DJANGO_DIALOG_ENGINE_TEMPLATE_LOADS:
+                prefix += '{%% load %s %%}' % template_load
+        except AttributeError:
+            pass
+
+        template = Template('%s%s' % (prefix, obj))
         context = Context(context_dict)
 
         return template.render(context)
