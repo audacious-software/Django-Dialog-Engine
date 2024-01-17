@@ -23,3 +23,4 @@ from .prompt_node import PromptNode
 from .random_branch_node import RandomBranchNode
 from .record_variable_node import RecordVariableNode
 from .time_elapsed_interrupt_node import TimeElapsedInterruptNode
+from .update_variable_node import UpdateVariableNode
