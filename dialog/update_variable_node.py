@@ -16,7 +16,7 @@ class UpdateVariableNode(BaseNode):
 
         return None
 
-    def __init__(self, node_id, next_node_id, key, value, operation, replacement=None):
+    def __init__(self, node_id, next_node_id, key, value, operation, replacement=None): # pylint: disable=too-many-arguments
         super(UpdateVariableNode, self).__init__(node_id, next_node_id)
 
         self.key = key

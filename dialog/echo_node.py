@@ -35,13 +35,15 @@ class EchoNode(BaseNode):
 
         transition.metadata['reason'] = 'echo-continue'
 
-        return transition
-
-    def actions(self):
-        return[{
+        transition.metadata['exit_actions'] = [{
             'type': 'echo',
             'message': self.message
         }]
+
+        return transition
+
+    def actions(self):
+        return []
 
     def node_definition(self):
         node_def = super().node_definition() # pylint: disable=missing-super-argument

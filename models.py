@@ -54,7 +54,7 @@ def apply_template(obj, context_dict):
         except AttributeError:
             pass
 
-        template = Template('%s%s' % (prefix, obj))
+        template = Template('%s{%% autoescape off %%}%s{%% endautoescape %%}' % (prefix, obj))
         context = Context(context_dict)
 
         return template.render(context)
