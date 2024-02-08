@@ -62,7 +62,7 @@ def apply_template(obj, context_dict):
 
             return template.render(context)
         except TemplateSyntaxError as ex:
-            logging.error('Exception in rendering dialog template content: %s' % obj)
+            logging.error('Exception in rendering dialog template content: %s', obj)
             logging.exception(ex)
 
             try:
