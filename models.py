@@ -6,6 +6,7 @@ from __future__ import print_function, unicode_literals
 from builtins import str # pylint: disable=redefined-builtin
 
 import importlib
+import logging
 import json
 import sys
 import traceback
@@ -26,6 +27,7 @@ except ImportError:
 from django.core.checks import Warning, register # pylint: disable=redefined-builtin
 from django.db import models
 from django.template import Template, Context
+from django.template.exceptions import TemplateSyntaxError
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
 from django.utils import timezone
@@ -54,10 +56,21 @@ def apply_template(obj, context_dict):
         except AttributeError:
             pass
 
-        template = Template('%s{%% autoescape off %%}%s{%% endautoescape %%}' % (prefix, obj))
-        context = Context(context_dict)
+        try:
+            template = Template('%s{%% autoescape off %%}%s{%% endautoescape %%}' % (prefix, obj))
+            context = Context(context_dict)
 
-        return template.render(context)
+            return template.render(context)
+        except TemplateSyntaxError as ex:
+            logging.error('Exception in rendering dialog template content: %s' % obj)
+            logging.exception(ex)
+
+            try:
+                return settings.DJANGO_DIALOG_ENGINE_TEMPLATE_PARSE_ERROR_MESSAGE
+            except AttributeError:
+                pass
+
+            return 'Dialog template parse error: template = "%s", error = %s' % (obj, ex)
 
     if isinstance(obj, list):
         new_list = []
