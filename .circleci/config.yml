@@ -40,7 +40,7 @@ jobs:
             mv project django_dialog_engine
             mkdir django
             cd django
-            django-admin.py startproject dde
+            django-admin startproject dde
             mv ../django_dialog_engine dde
             cd dde
             cp django_dialog_engine/circle_settings.py dde/settings.py
@@ -99,7 +99,7 @@ jobs:
             mv project django_dialog_engine
             mkdir django
             cd django
-            django-admin.py startproject dde
+            django-admin startproject dde
             mv ../django_dialog_engine dde
             cd dde
             cp django_dialog_engine/circle_settings.py dde/settings.py
