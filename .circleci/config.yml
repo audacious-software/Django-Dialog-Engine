@@ -17,7 +17,7 @@ jobs:
   build-39:
     docker:
       - image: cimg/python:3.9
-      - image: cimg/postgres:9.6.24-postgis
+      - image: cimg/postgres:12.18-postgis
         auth:
           username: mydockerhub-user
           password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
@@ -29,7 +29,7 @@ jobs:
       - node/install
       - checkout
       - restore_cache:
-          key: venv-38-{{ .Branch }}-{{ checksum "requirements.txt" }}-v1
+          key: venv-39-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           name: Build and validate
           command: |
@@ -64,7 +64,7 @@ jobs:
             export BOTIUM_DDE_DIALOG_SCRIPT_PATH="./django_dialog_engine/botium/dialog_scripts/prompt_test.json"
             botium-cli run -c django_dialog_engine/botium/botium.json -C django_dialog_engine/botium/convos/prompt_test/
       - save_cache:
-          key: venv-38-{{ .Branch }}-{{ checksum "/home/circleci/django/dde/django_dialog_engine/requirements.txt" }}
+          key: venv-39-{{ .Branch }}-{{ checksum "/home/circleci/django/dde/django_dialog_engine/requirements.txt" }}
           paths:
             - "/home/circleci/venv"
       - store_test_results:
@@ -76,7 +76,7 @@ jobs:
   build-38:
     docker:
       - image: cimg/python:3.8
-      - image: cimg/postgres:9.6.24-postgis
+      - image: cimg/postgres:12.18-postgis
         auth:
           username: mydockerhub-user
           password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
@@ -88,7 +88,7 @@ jobs:
       - node/install
       - checkout
       - restore_cache:
-          key: venv-38-{{ .Branch }}-{{ checksum "requirements.txt" }}-v1
+          key: venv-38-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           name: Build and validate
           command: |
@@ -147,7 +147,7 @@ jobs:
       - node/install
       - checkout
       - restore_cache:
-          key: venv-37-{{ .Branch }}-{{ checksum "requirements.txt" }}-v1
+          key: venv-37-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           name: Build and validate
           command: |
@@ -208,7 +208,7 @@ jobs:
       - node/install
       - checkout
       - restore_cache:
-          key: venv-36-{{ .Branch }}-{{ checksum "requirements.txt" }}-v1
+          key: venv-36-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           name: Build and validate
           command: |
@@ -267,7 +267,7 @@ jobs:
       - node/install
       - checkout
       - restore_cache:
-          key: venv-27-{{ .Branch }}-{{ checksum "requirements.txt" }}-v1
+          key: venv-27-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           name: Build and validate
           command: |
