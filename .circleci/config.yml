@@ -35,6 +35,8 @@ jobs:
           command: |
             python -m venv --copies /home/circleci/venv
             . /home/circleci/venv/bin/activate
+            pip install -U pip
+            pip install -U wheel
             pip install -r requirements.txt --progress-bar off
             cd ..
             mv project django_dialog_engine
@@ -94,6 +96,8 @@ jobs:
           command: |
             python -m venv --copies /home/circleci/venv
             . /home/circleci/venv/bin/activate
+            pip install -U pip
+            pip install -U wheel
             pip install -r requirements.txt --progress-bar off
             cd ..
             mv project django_dialog_engine
@@ -154,7 +158,8 @@ jobs:
             python -m venv --copies /home/circleci/venv
             . /home/circleci/venv/bin/activate
             python --version
-            pip install --upgrade pip
+            pip install -U pip
+            pip install -U wheel
             pip install -r requirements.txt --progress-bar off
             cd ..
             mv project django_dialog_engine
@@ -214,6 +219,8 @@ jobs:
           command: |
             python -m venv --copies /home/circleci/venv
             . /home/circleci/venv/bin/activate
+            pip install -U pip
+            pip install -U wheel
             pip install -r requirements.txt --progress-bar off
             cd ..
             mv project django_dialog_engine
@@ -273,6 +280,8 @@ jobs:
           command: |
             virtualenv --copies /home/circleci/venv
             . /home/circleci/venv/bin/activate
+            pip install -U pip
+            pip install -U wheel
             pip install -r requirements.txt --progress-bar off
             cd ..
             mv project django_dialog_engine
