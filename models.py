@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long, no-member
+# pylint: disable=line-too-long, no-member, too-many-instance-attributes
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, unicode_literals
@@ -315,7 +315,7 @@ class DialogScript(models.Model):
 
         return issues
 
-@python_2_unicode_compatible # pylint: disable=too-many-instance-attributes
+@python_2_unicode_compatible
 class DialogScriptVersion(models.Model):
     class Meta: # pylint: disable=too-few-public-methods, old-style-class, no-init
         ordering = ['-updated',]
