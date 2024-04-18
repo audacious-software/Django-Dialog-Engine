@@ -16,7 +16,7 @@ try:
 except ImportError:
     from django.contrib.postgres.fields import JSONField
 
-from .models import Dialog, DialogScript, DialogStateTransition
+from .models import Dialog, DialogScript, DialogScriptVersion, DialogStateTransition
 
 @admin.register(Dialog)
 class DialogAdmin(admin.ModelAdmin):
@@ -102,6 +102,42 @@ class DialogScriptLabelForm(ActionForm):
         widget=DialogScriptLabelWidget()
     )
 
+def restore_dialog_script_version(modeladmin, request, queryset): # pylint: disable=unused-argument
+    for item in queryset:
+        item.restore_version()
+
+restore_dialog_script_version.short_description = "Restore selected versions"
+
+@admin.register(DialogScriptVersion)
+class DialogScriptVersionAdmin(admin.ModelAdmin):
+    list_display = ('dialog_script', 'name', 'identifier', 'updated')
+    list_filter = ('updated', 'created', 'dialog_script', 'identifier')
+    search_fields = ('name', 'identifier', 'definition', 'labels',)
+
+    formfield_overrides = {
+        JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'})}
+    }
+
+    actions = [restore_dialog_script_version]
+
+
+class DialogScriptVersionInline(admin.TabularInline):
+    model = DialogScriptVersion
+
+    verbose_name = 'Version'
+    verbose_name_plural = 'Versions'
+    template = 'admin_inlines/versions_tabular.html'
+
+    fields = ['updated', 'creator', 'size']
+    readonly_fields = ['updated', 'creator', 'size']
+    ordering = ('-updated',)
+
+    def has_add_permission(self, request, obj=None): # pylint: disable=arguments-differ,unused-argument
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 @admin.register(DialogScript)
 class DialogScriptAdmin(admin.ModelAdmin):
     list_display = ('name', 'identifier', 'size', 'created', 'admin_labels',)
@@ -111,6 +147,10 @@ class DialogScriptAdmin(admin.ModelAdmin):
     formfield_overrides = {
         JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'})}
     }
+
+    inlines = [
+        DialogScriptVersionInline,
+    ]
 
     def add_label(self, request, queryset):
         label = request.POST.get('label_field', None)

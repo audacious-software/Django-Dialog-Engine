@@ -7,6 +7,7 @@ from builtins import str # pylint: disable=redefined-builtin
 
 import importlib
 import logging
+import inspect
 import json
 import sys
 import traceback
@@ -16,8 +17,9 @@ import gettext
 from six import python_2_unicode_compatible
 
 from django.conf import settings
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.contrib.auth import get_user_model
 
 try:
     from django.db.models import JSONField
@@ -45,6 +47,15 @@ FINISH_REASONS = (
 )
 
 _ = gettext.gettext
+
+# https://stackoverflow.com/a/75217303/193812
+def get_requested_user():
+    for frame_record in inspect.stack():
+        if frame_record[3] == 'get_response':
+            request = frame_record[0].f_locals['request']
+            return request.user
+
+    return None
 
 def apply_template(obj, context_dict):
     if isinstance(obj, str):
@@ -94,6 +105,7 @@ def apply_template(obj, context_dict):
 class DialogScript(models.Model):
     name = models.CharField(max_length=1024, default='New Dialog Script')
     created = models.DateTimeField(auto_now_add=True, null=True)
+    updated = models.DateTimeField(null=True, blank=True)
 
     embeddable = models.BooleanField(default=False)
 
@@ -302,6 +314,64 @@ class DialogScript(models.Model):
                 pass # traceback.print_exc()
 
         return issues
+
+@python_2_unicode_compatible
+class DialogScriptVersion(models.Model): # pylint: disable=too-many-instance-attributes
+    class Meta: # pylint: disable=too-few-public-methods
+        ordering = ['-updated',]
+
+    dialog_script = models.ForeignKey(DialogScript, null=True, related_name='versions', on_delete=models.SET_NULL)
+    creator = models.ForeignKey(get_user_model(), null=True, blank=True, on_delete=models.SET_NULL)
+
+    name = models.CharField(max_length=1024, default='New Dialog Script')
+    created = models.DateTimeField(null=True, blank=True)
+    updated = models.DateTimeField(null=True, blank=True)
+
+    embeddable = models.BooleanField(default=False)
+
+    identifier = models.SlugField(max_length=1024, null=True, blank=True)
+
+    labels = models.TextField(max_length=(1024 * 1024), null=True, blank=True)
+
+    definition = JSONField(null=True, blank=True)
+
+    def __str__(self):
+        return '%s - %s (%s)' % (self.dialog_script, self.created, self.creator)
+
+    def get_absolute_url(self):
+        return '/admin/django_dialog_engine/dialogscriptversion/' + str(self.pk) + '/change'
+
+    def size(self):
+        if self.definition is None:
+            return 0
+
+        return len(self.definition)
+
+    def restore_version(self):
+        self.dialog_script.name = self.name
+        self.dialog_script.created = self.created
+        self.dialog_script.embeddable = self.embeddable
+        self.dialog_script.identifier = self.identifier
+        self.dialog_script.labels = self.labels
+        self.dialog_script.definition = self.definition
+
+        self.dialog_script.save()
+
+@receiver(pre_save, sender=DialogScript)
+def create_version_update_updated(sender, instance, **kwargs): # pylint: disable=unused-argument
+    instance.updated = timezone.now()
+
+    new_version = DialogScriptVersion(dialog_script=instance)
+    new_version.name = instance.name
+    new_version.created = instance.created
+    new_version.updated = instance.updated
+    new_version.embeddable = instance.embeddable
+    new_version.identifier = instance.identifier
+    new_version.labels = instance.labels
+    new_version.definition = instance.definition
+    new_version.creator = get_requested_user()
+
+    new_version.save()
 
 @python_2_unicode_compatible
 class Dialog(models.Model):
