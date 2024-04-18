@@ -315,9 +315,9 @@ class DialogScript(models.Model):
 
         return issues
 
-@python_2_unicode_compatible
-class DialogScriptVersion(models.Model): # pylint: disable=too-many-instance-attributes
-    class Meta: # pylint: disable=too-few-public-methods
+@python_2_unicode_compatible # pylint: disable=too-many-instance-attributes
+class DialogScriptVersion(models.Model):
+    class Meta: # pylint: disable=too-few-public-methods, old-style-class, no-init
         ordering = ['-updated',]
 
     dialog_script = models.ForeignKey(DialogScript, null=True, related_name='versions', on_delete=models.SET_NULL)
