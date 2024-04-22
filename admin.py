@@ -20,7 +20,7 @@ from .models import Dialog, DialogScript, DialogScriptVersion, DialogStateTransi
 
 @admin.register(Dialog)
 class DialogAdmin(admin.ModelAdmin):
-    list_display = ('key', 'script', 'started', 'finished', 'finish_reason',)
+    list_display = ('key', 'script', 'current_state_id', 'started', 'finished', 'finish_reason',)
     search_fields = ('key', 'dialog_snapshot', 'finish_reason', 'script__name',)
     list_filter = ('started', 'finished', 'finish_reason')
 
