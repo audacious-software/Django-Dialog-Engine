@@ -425,6 +425,10 @@ class Dialog(models.Model):
         if extras is None:
             extras = {}
 
+        for key in self.metadata.keys():
+            if (key in extras) is False:
+                extras[key] = self.metadata[key]
+
         actions = []
 
         if self.finished is not None:
