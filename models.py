@@ -421,7 +421,7 @@ class Dialog(models.Model):
     def is_active(self):
         return self.finished is None
 
-    def process(self, response=None, extras=None): # pylint: disable=too-many-statements
+    def process(self, response=None, extras=None): # pylint: disable=too-many-statements, too-many-branches
         if extras is None:
             extras = {}
 
