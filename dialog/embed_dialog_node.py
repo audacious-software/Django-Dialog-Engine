@@ -13,7 +13,7 @@ class EmbedDialogNode(BaseNode):
             if ('next_id' in dialog_def) is False:
                 raise MissingNextDialogNodeError('next_id missing in: ' + json.dumps(dialog_def, indent=2), dialog_def, 'next_id')
 
-            return EmbedDialogNode(dialog_def['id'], dialog_def['next_id'], dialog_def['script_id'])
+            return EmbedDialogNode(dialog_def['id'], dialog_def['next_id'], dialog_def.get('script_id', None))
 
         return None
 
