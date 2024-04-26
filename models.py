@@ -17,6 +17,7 @@ import gettext
 from six import python_2_unicode_compatible
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
@@ -720,6 +721,28 @@ def check_prettyjson_installed(app_configs, **kwargs): # pylint: disable=unused-
 
     if ('prettyjson' in settings.INSTALLED_APPS) is False:
         error = Warning('"prettyjson" not found in settings.INSTALLED_APPS', hint='Add "prettyjson" to settings.INSTALLED_APPS.', obj=None, id='django_dialog_engine.W001')
+        errors.append(error)
+
+    return errors
+
+@register()
+def check_cache_is_working(app_configs, **kwargs): # pylint: disable=unused-argument
+    errors = []
+
+    cache_error = False
+
+    try:
+        cache.set('cache_setup_key', 'cache_setup_value')
+
+        if cache.get('cache_setup_key', None) != 'cache_setup_value':
+            cache_error = True
+
+        cache.delete('cache_setup_key')
+    except: # pylint: disable=bare-except
+        cache_error = True
+
+    if cache_error:
+        error = Warning('Local cache does not appear to be setup properly.', hint='Add CACHE definition to settings and run "createcachetable" management command.', obj=None, id='django_dialog_engine.W002')
         errors.append(error)
 
     return errors
