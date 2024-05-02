@@ -362,7 +362,7 @@ class DialogScriptVersion(models.Model):
 def create_version_update_updated(sender, instance, **kwargs): # pylint: disable=unused-argument
     instance.updated = timezone.now()
 
-    new_version = DialogScriptVersion(dialog_script=instance)
+    new_version = DialogScriptVersion()
     new_version.name = instance.name
     new_version.created = instance.created
     new_version.updated = instance.updated
@@ -373,6 +373,14 @@ def create_version_update_updated(sender, instance, **kwargs): # pylint: disable
     new_version.creator = get_requested_user()
 
     new_version.save()
+
+@receiver(post_save, sender=DialogScript) # Added to attach version that could not be attached due to unsaved DialogScript in pre_save signal.
+def attach_version_update_updated(sender, instance, **kwargs): # pylint: disable=unused-argument
+    script_versions = DialogScriptVersion.objects.filter(dialog_script=None, identifier=instance.identifier, definition=instance.definition)
+
+    for script_version in script_versions:
+        script_version.dialog_script = instance
+        script_version.save()
 
 @python_2_unicode_compatible
 class Dialog(models.Model):
