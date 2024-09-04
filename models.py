@@ -474,6 +474,9 @@ class Dialog(models.Model):
                     self.finish_reason = 'dialog_concluded'
                     self.metadata['last_transition_details'] = transition.metadata
 
+                    for exit_action in transition.metadata.get('exit_actions', []):
+                        new_actions.append(exit_action)
+
                     self.save()
                 else:
                     new_transition = DialogStateTransition(dialog=self)
