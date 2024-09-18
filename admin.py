@@ -138,6 +138,9 @@ class DialogScriptVersionInline(admin.TabularInline):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    def has_change_permission(self, request, obj=None):
+        return False
+
 @admin.register(DialogScript)
 class DialogScriptAdmin(admin.ModelAdmin):
     list_display = ('name', 'identifier', 'size', 'created', 'admin_labels',)
@@ -195,7 +198,21 @@ class DialogScriptAdmin(admin.ModelAdmin):
 
     archive_script.short_description = "Archive selected dialog scripts"
 
-    actions = [clone_dialog_scripts, archive_script, add_label, clear_label]
+    def make_embeddable(self, request, queryset):
+        count = queryset.update(embeddable=True)
+
+        self.message_user(request, '%d dialog script(s) marked embeddable.' % count)
+
+    make_embeddable.short_description = "Make selected dialog scripts embeddable"
+
+    def remove_embeddable(self, request, queryset):
+        count = queryset.update(embeddable=True)
+
+        self.message_user(request, '%d dialog script(s) are no longer embeddable.' % count)
+
+    remove_embeddable.short_description = "Make selected dialog scripts unembeddable"
+
+    actions = [clone_dialog_scripts, archive_script, add_label, clear_label, make_embeddable, remove_embeddable]
     action_form = DialogScriptLabelForm
 
 @admin.register(DialogStateTransition)
