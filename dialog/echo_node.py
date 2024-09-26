@@ -51,3 +51,14 @@ class EchoNode(BaseNode):
         node_def['message'] = self.message
 
         return node_def
+
+    def search_text(self):
+        values = ['echo']
+
+        if self.message is not None:
+            values.append(self.message)
+
+        if self.next_node_id is not None:
+            values.append(self.next_node_id)
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

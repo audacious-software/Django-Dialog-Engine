@@ -28,3 +28,8 @@ class BeginNode(BaseNode):
 
     def actions(self):
         return []
+
+    def search_text(self):
+        values = ['begin', self.next_node_id]
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

@@ -53,3 +53,8 @@ class RecordVariableNode(BaseNode):
         node_def['value'] = self.value
 
         return node_def
+
+    def search_text(self):
+        values = ['record-variable', self.key, self.value]
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

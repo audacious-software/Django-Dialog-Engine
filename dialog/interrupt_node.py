@@ -59,3 +59,14 @@ class InterruptNode(BaseNode):
                 return match_pattern
 
         return None
+
+    def search_text(self):
+        values = ['interrupt']
+
+        for match_pattern in self.match_patterns:
+            values.append(match_pattern)
+
+        if self.next_node_id is not None:
+            values.append(self.next_node_id)
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

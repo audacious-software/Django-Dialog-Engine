@@ -252,3 +252,31 @@ class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attr
 
     def actions(self):
         return[]
+
+    def search_text(self):
+        values = ['http-response']
+
+        for param in self.parameters:
+            values.append(param)
+
+        for action in self.pattern_actions:
+            values.append(action['pattern'])
+            values.append(action['action'])
+
+        for header in self.headers:
+            values.append(header)
+
+        if self.url is not None:
+            values.append(self.url)
+
+        if self.method is not None:
+            values.append(self.method)
+
+
+        if self.invalid_response_node_id is not None:
+            values.append(self.invalid_response_node_id)
+
+        if self.timeout_node_id is not None:
+            values.append(self.timeout_node_id)
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

@@ -57,3 +57,14 @@ class EmbedDialogNode(BaseNode):
             return machine.dialog_definition()
 
         return None
+
+    def search_text(self):
+        values = ['embed-dialog']
+
+        if self.next_node_id is not None:
+            values.append(self.next_node_id)
+
+        if self.script_id is not None:
+            values.append(self.script_id)
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

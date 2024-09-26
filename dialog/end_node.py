@@ -39,3 +39,8 @@ class EndNode(BaseNode):
             del node_def['next_id']
 
         return node_def
+
+    def search_text(self):
+        values = ['end-dialog']
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

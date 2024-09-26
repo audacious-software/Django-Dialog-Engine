@@ -124,3 +124,12 @@ class ExternalChoiceNode(BaseNode):
             })
 
         return [available_choices]
+
+    def search_text(self):
+        values = ['external-choice']
+
+        for action in self.choice_actions:
+            values.append(action['identifier'])
+            values.append(action['label'])
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

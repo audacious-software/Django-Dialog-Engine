@@ -166,3 +166,11 @@ class RandomBranchNode(BaseNode):
             nodes.append((action['action'], 'Weight: ' + str(action['weight'])))
 
         return nodes
+
+    def search_text(self):
+        values = ['random-branch']
+
+        for action in self.random_actions:
+            values.append(action['action'])
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

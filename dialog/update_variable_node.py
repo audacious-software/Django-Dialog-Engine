@@ -59,3 +59,20 @@ class UpdateVariableNode(BaseNode):
         node_def['replacement'] = self.replacement
 
         return node_def
+
+    def search_text(self):
+        values = ['update-variable']
+
+        if self.key is not None:
+            values.append(self.key)
+
+        if self.value is not None:
+            values.append(self.value)
+
+        if self.replacement is not None:
+            values.append(self.replacement)
+
+        if self.operation is not None:
+            values.append(self.operation)
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

@@ -143,3 +143,18 @@ class BranchingConditionsNode(BaseNode):
 
     def actions(self):
         return[]
+
+    def search_text(self):
+        values = ['branch-conditions']
+
+        if self.error_node is not None:
+            values.append(self.error_node)
+
+        if self.no_match_node_id is not None:
+            values.append(self.no_match_node_id)
+
+        for conditional_action in self.conditional_actions:
+            values.append(conditional_action['action'])
+            values.append(conditional_action['condition'])
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

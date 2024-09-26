@@ -142,3 +142,17 @@ class PromptNode(BaseNode):
             'type': 'wait-for-input',
             'timeout': self.timeout
         }]
+
+    def search_text(self):
+        values = ['prompt']
+
+        if self.prompt is not None:
+            values.append(self.prompt)
+
+        if self.timeout_node_id is not None:
+            values.append(self.timeout_node_id)
+
+        if self.invalid_response_node_id is not None:
+            values.append(self.invalid_response_node_id)
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

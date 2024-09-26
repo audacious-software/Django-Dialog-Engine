@@ -61,6 +61,14 @@ class BaseNode(object):
             'next_id': self.next_node_id
         }
 
+    def search_text(self):
+        values = [self.node_id]
+
+        if self.node_name is not None:
+            values.append(self.node_name)
+
+        return '\n'.join(values)
+
 def fetch_default_logger():
     logger = logging.getLogger('django-dialog-engine')
     logger.setLevel(logging.DEBUG)

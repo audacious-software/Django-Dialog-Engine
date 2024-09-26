@@ -49,3 +49,11 @@ class AlertNode(BaseNode):
         node_def['message'] = self.message
 
         return node_def
+
+    def search_text(self):
+        values = ['raise-alert']
+
+        if self.message is not None:
+            values.append(self.message)
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

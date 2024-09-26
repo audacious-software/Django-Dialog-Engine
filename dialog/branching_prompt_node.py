@@ -185,3 +185,20 @@ class BranchingPromptNode(BaseNode):
             'type': 'echo',
             'message': self.prompt
         }]
+
+    def search_text(self):
+        values = ['branch-prompt']
+
+        if self.prompt is not None:
+            values.append(self.prompt)
+
+        if self.invalid_response_node_id is not None:
+            values.append(self.invalid_response_node_id)
+
+        if self.timeout_node_id is not None:
+            values.append(self.timeout_node_id)
+
+        for pattern_action in self.pattern_actions:
+            values.append(pattern_action['action'])
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

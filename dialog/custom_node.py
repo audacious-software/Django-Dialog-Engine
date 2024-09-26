@@ -141,3 +141,14 @@ class CustomNode(BaseNode):
             traceback.print_exc()
 
         return []
+
+    def search_text(self):
+        values = ['custom']
+
+        if self.actions_script is not None:
+            values.append(self.actions_script)
+
+        if self.evaluate_script is not None:
+            values.append(self.evaluate_script)
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

@@ -88,3 +88,20 @@ class IfNode(BaseNode):
 
     def actions(self):
         return []
+
+    def search_text(self):
+        values = ['if']
+
+        if self.next_node_id is not None:
+            values.append(self.next_node_id)
+
+        if self.false_id is not None:
+            values.append(self.false_id)
+
+        for condition in self.all_true:
+            values.append(condition['key'])
+
+            values.append(condition['value'])
+            values.append(condition['condition'])
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

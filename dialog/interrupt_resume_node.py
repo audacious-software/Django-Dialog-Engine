@@ -63,3 +63,8 @@ class InterruptResumeNode(BaseNode):
 
     def next_nodes(self):
         return []
+
+    def search_text(self):
+        values = ['interrupt-resume']
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument

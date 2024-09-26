@@ -81,3 +81,14 @@ class LoopNode(BaseNode):
             return LoopNode(dialog_def['id'], dialog_def['next_id'], dialog_def['iterations'], dialog_def['loop_id'])
 
         return None
+
+    def search_text(self):
+        values = ['loop']
+
+        if self.loop_node_id is not None:
+            values.append(self.loop_node_id)
+
+        if self.next_node_id is not None:
+            values.append(self.next_node_id)
+
+        return '%s\n%s' % (super().search_text(), '\n'.join(values)) # pylint: disable=missing-super-argument
