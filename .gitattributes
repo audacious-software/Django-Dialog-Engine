@@ -6,8 +6,9 @@
 *.env text eol=lf
 *.html text eol=lf
 *.css text eol=lf
+*.yml text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+LICENSE text eol=lf
 crontab text eol=lf
 Dockerfile text eol=lf
-
-LICENSE text eol=lf
-.circleci text eol=lf
