@@ -11,7 +11,16 @@ class BranchingPromptNode(BaseNode):
     @staticmethod
     def parse(dialog_def):
         if dialog_def['type'] == 'branch-prompt':
-            prompt_node = BranchingPromptNode(dialog_def['id'], dialog_def['actions'], dialog_def['prompt'])
+            # For backwards compatibility...
+
+            node_id = dialog_def['id']
+
+            variable = dialog_def.get('variable', None)
+
+            if variable is None:
+                variable = node_id
+
+            prompt_node = BranchingPromptNode(node_id, variable, dialog_def['actions'], dialog_def['prompt'])
 
             if 'no_match' in dialog_def:
                 prompt_node.invalid_response_node_id = dialog_def['no_match']
@@ -30,10 +39,12 @@ class BranchingPromptNode(BaseNode):
 
         return None
 
-    def __init__(self, node_id, actions, prompt, invalid_response_node_id=None, timeout=300, timeout_node_id=None, timeout_iterations=None): # pylint: disable=too-many-arguments
+    def __init__(self, node_id, variable, actions, prompt, invalid_response_node_id=None, timeout=300, timeout_node_id=None, timeout_iterations=None): # pylint: disable=too-many-arguments
         super(BranchingPromptNode, self).__init__(node_id, node_id)
 
         self.prompt = prompt
+
+        self.variable = variable
 
         self.invalid_response_node_id = invalid_response_node_id
 
@@ -127,7 +138,7 @@ class BranchingPromptNode(BaseNode):
 
                     transition.metadata['exit_actions'] = [{
                         'type': 'store-value',
-                        'key': self.node_id,
+                        'key': self.variable,
                         'value': response
                     }]
 
@@ -142,7 +153,7 @@ class BranchingPromptNode(BaseNode):
             transition.metadata['actions'] = self.pattern_actions
             transition.metadata['exit_actions'] = [{
                 'type': 'store-value',
-                'key': self.node_id.split('__')[-1],
+                'key': self.variable.split('__')[-1],
                 'value': response
             }]
 
@@ -191,6 +202,9 @@ class BranchingPromptNode(BaseNode):
 
         if self.prompt is not None:
             values.append(self.prompt)
+
+        if self.variable is not None:
+            values.append(self.variable)
 
         if self.invalid_response_node_id is not None:
             values.append(self.invalid_response_node_id)
