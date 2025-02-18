@@ -2,6 +2,13 @@
 
 import re
 
+try:
+    from collections import UserDict
+except ImportError:
+    from UserDict import UserDict
+
+import six
+
 from django.utils import timezone
 
 from .base_node import BaseNode, fetch_default_logger
@@ -120,11 +127,19 @@ class BranchingPromptNode(BaseNode):
         if response is not None: # pylint: disable=no-else-return
             matched_action = None
 
-            response = response.strip()
+            test_response = response
+
+            if isinstance(test_response, six.string_types) is False:
+                test_response = str(test_response)
+
+            test_response = test_response.strip()
 
             for action in self.pattern_actions:
-                if matched_action is None and re.search(action['pattern'], response, re.IGNORECASE) is not None:
+                if matched_action is None and re.search(action['pattern'], test_response, re.IGNORECASE) is not None:
                     matched_action = action
+
+            if isinstance(response, UserDict):
+                response = dict(response)
 
             if matched_action is None:
                 if self.invalid_response_node_id is not None:
