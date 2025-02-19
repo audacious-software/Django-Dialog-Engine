@@ -13,7 +13,7 @@ from django.conf import settings
 from django.core import management
 from django.utils.text import slugify
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__) # pylint: disable=invalid-name
 
 def incremental_backup(parameters):
     to_transmit = []

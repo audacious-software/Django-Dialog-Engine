@@ -12,7 +12,7 @@ from django.conf import settings
 from django.core import management
 from django.utils.text import slugify
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__) # pylint: disable=invalid-name
 
 def load_backup(filename, content):
     prefix = 'django_dialog_engine_backup_' + settings.ALLOWED_HOSTS[0]

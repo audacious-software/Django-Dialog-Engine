@@ -38,7 +38,7 @@ from django.utils.html import mark_safe
 
 from .dialog import DialogMachine, ExternalChoiceNode, DialogError
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__) # pylint: disable=invalid-name
 
 FINISH_REASONS = (
     ('not_finished', 'Not Finished'),
