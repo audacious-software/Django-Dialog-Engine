@@ -8,7 +8,7 @@ import json
 
 from django.conf import settings
 
-from .base_node import BaseNode, MissingNextDialogNodeError, DialogError, fetch_default_logger, DialogTransition
+from .base_node import BaseNode, MissingNextDialogNodeError, DialogError, DialogTransition
 
 MISSING_NEXT_NODE_KEY = 'django-dialog-engine-missing-next-node-end'
 
@@ -88,9 +88,6 @@ class DialogMachine(object):
 
         if extras is None:
             extras = {}
-
-        if logger is None:
-            logger = fetch_default_logger()
 
         if self.current_node is None:
             return None

@@ -1,6 +1,6 @@
 # pylint: disable=line-too-long, super-with-arguments
 
-from .base_node import BaseNode, fetch_default_logger, DialogTransition
+from .base_node import BaseNode, DialogTransition
 
 class BeginNode(BaseNode):
     @staticmethod
@@ -16,9 +16,6 @@ class BeginNode(BaseNode):
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
-
-        if logger is None:
-            logger = fetch_default_logger()
 
         transition = DialogTransition(new_state_id=self.next_node_id)
 

@@ -8,7 +8,7 @@ import requests
 
 from jsonpath_ng.ext import parse as jsonpath_ng_parse
 
-from .base_node import BaseNode, fetch_default_logger
+from .base_node import BaseNode
 from .dialog_machine import DialogTransition
 
 class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attributes
@@ -138,9 +138,6 @@ class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attr
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches, too-many-locals, too-many-statements
         if extras is None:
             extras = {}
-
-        if logger is None:
-            logger = fetch_default_logger()
 
         parameters = {}
 

@@ -4,7 +4,7 @@ import re
 
 from django.utils import timezone
 
-from .base_node import BaseNode, fetch_default_logger
+from .base_node import BaseNode
 from .dialog_machine import DialogTransition
 
 class PromptNode(BaseNode):
@@ -77,7 +77,7 @@ class PromptNode(BaseNode):
             extras = {}
 
         if logger is None:
-            logger = fetch_default_logger()
+            logger = ()
 
 
         if response is None and last_transition is not None and self.timeout_node_id is not None:

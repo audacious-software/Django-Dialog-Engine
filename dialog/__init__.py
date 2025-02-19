@@ -2,7 +2,7 @@
 
 from .dialog_machine import DialogMachine, MISSING_NEXT_NODE_KEY
 
-from .base_node import DialogError, MissingNextDialogNodeError, BaseNode, fetch_default_logger, DialogTransition
+from .base_node import DialogError, MissingNextDialogNodeError, BaseNode, DialogTransition
 
 from .alert_node import AlertNode
 from .begin_node import BeginNode

@@ -3,7 +3,7 @@
 import json
 import uuid
 
-from .base_node import BaseNode, MissingNextDialogNodeError, fetch_default_logger
+from .base_node import BaseNode, MissingNextDialogNodeError
 from .dialog_machine import DialogTransition, DialogMachine
 
 class EmbedDialogNode(BaseNode):
@@ -28,9 +28,6 @@ class EmbedDialogNode(BaseNode):
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, unused-argument
         if extras is None:
             extras = {}
-
-        if logger is None:
-            logger = fetch_default_logger()
 
         transition = DialogTransition(new_state_id=self.next_node_id)
 

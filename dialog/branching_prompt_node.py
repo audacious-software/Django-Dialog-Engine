@@ -11,7 +11,7 @@ import six
 
 from django.utils import timezone
 
-from .base_node import BaseNode, fetch_default_logger
+from .base_node import BaseNode
 from .dialog_machine import DialogTransition
 
 class BranchingPromptNode(BaseNode):
@@ -120,9 +120,6 @@ class BranchingPromptNode(BaseNode):
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches
         if extras is None:
             extras = {}
-
-        if logger is None:
-            logger = fetch_default_logger()
 
         if response is not None: # pylint: disable=no-else-return
             matched_action = None

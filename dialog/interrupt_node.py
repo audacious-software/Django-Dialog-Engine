@@ -2,7 +2,7 @@
 
 import re
 
-from .base_node import BaseNode, fetch_default_logger, DialogTransition
+from .base_node import BaseNode, DialogTransition
 
 class InterruptNode(BaseNode):
     @staticmethod
@@ -35,9 +35,6 @@ class InterruptNode(BaseNode):
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
-
-        if logger is None:
-            logger = fetch_default_logger()
 
         dialog.push_value('django_dialog_engine_interrupt_node_stack', last_transition.prior_state_id)
 

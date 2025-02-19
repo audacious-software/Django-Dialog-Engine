@@ -2,7 +2,7 @@
 
 from django.utils import timezone
 
-from .base_node import BaseNode, fetch_default_logger, DialogTransition
+from .base_node import BaseNode, DialogTransition
 
 class TimeElapsedInterruptNode(BaseNode):
     @staticmethod
@@ -63,7 +63,7 @@ class TimeElapsedInterruptNode(BaseNode):
             extras = {}
 
         if logger is None:
-            logger = fetch_default_logger()
+            logger = ()
 
         if self.should_fire(last_transition, ignore_transitions=True):
             transition = DialogTransition(new_state_id=self.next_node_id)

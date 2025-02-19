@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import importlib
+import logging
 import traceback
 
 from past.builtins import basestring # pylint: disable=redefined-builtin
@@ -10,7 +11,7 @@ from past.builtins import basestring # pylint: disable=redefined-builtin
 from django.conf import settings
 from django.utils.encoding import smart_str
 
-from .base_node import BaseNode, fetch_default_logger, DialogError
+from .base_node import BaseNode, DialogError
 from .dialog_machine import DialogTransition
 
 class CustomNode(BaseNode):
@@ -48,7 +49,7 @@ class CustomNode(BaseNode):
             extras = {}
 
         if logger is None:
-            logger = fetch_default_logger()
+            logger = logging.getLogger(__name__)
 
         last_transition_date = None
         previous_state = None
@@ -119,6 +120,8 @@ class CustomNode(BaseNode):
         return None
 
     def actions(self):
+        logger = logging.getLogger(__name__)
+
         try:
             code = compile(self.actions_script, '<string>', 'exec')
 
@@ -132,13 +135,9 @@ class CustomNode(BaseNode):
 
             return custom_actions
         except: # pylint: disable=bare-except
-            print('Error in custom node (%s):' % self.node_id)
-
-            traceback.print_exc()
-
-            print('Script:\n%s' % self.actions_script)
-
-            traceback.print_exc()
+            logger.error('Error in custom node (%s):', self.node_id)
+            logger.error('Script:\n%s', self.actions_script)
+            logger.error(traceback.format_exc())
 
         return []
 

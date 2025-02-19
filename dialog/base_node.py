@@ -1,8 +1,5 @@
 # pylint: disable=useless-object-inheritance
 
-import logging
-import sys
-
 class DialogError(Exception):
     pass
 
@@ -68,19 +65,6 @@ class BaseNode(object):
             values.append(self.node_name)
 
         return '\n'.join(values)
-
-def fetch_default_logger():
-    logger = logging.getLogger('django-dialog-engine')
-    logger.setLevel(logging.DEBUG)
-
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-
-    logger.addHandler(handler)
-
-    return logger
 
 class DialogTransition(object): # pylint: disable=too-few-public-methods
     def __init__(self, new_state_id, metadata=None):

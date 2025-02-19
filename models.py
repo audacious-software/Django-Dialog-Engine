@@ -36,7 +36,7 @@ from django.urls.exceptions import NoReverseMatch
 from django.utils import timezone
 from django.utils.html import mark_safe
 
-from .dialog import DialogMachine, fetch_default_logger, ExternalChoiceNode, DialogError
+from .dialog import DialogMachine, ExternalChoiceNode, DialogError
 
 FINISH_REASONS = (
     ('not_finished', 'Not Finished'),
@@ -454,8 +454,6 @@ class Dialog(models.Model):
 
             if last_transition is not None:
                 dialog_machine.advance_to(last_transition.state_id)
-
-            logger = fetch_default_logger()
 
             try:
                 logger = settings.FETCH_LOGGER()

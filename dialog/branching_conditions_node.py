@@ -2,7 +2,7 @@
 
 import traceback
 
-from .base_node import BaseNode, DialogError, fetch_default_logger
+from .base_node import BaseNode, DialogError
 from .dialog_machine import DialogTransition
 
 class BranchingConditionsNode(BaseNode):
@@ -80,9 +80,6 @@ class BranchingConditionsNode(BaseNode):
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
-
-        if logger is None:
-            logger = fetch_default_logger()
 
         try:
             for conditional_action in self.conditional_actions:

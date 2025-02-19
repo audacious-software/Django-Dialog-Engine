@@ -2,7 +2,7 @@
 
 import json
 
-from .base_node import BaseNode, MissingNextDialogNodeError, fetch_default_logger
+from .base_node import BaseNode, MissingNextDialogNodeError
 from .dialog_machine import DialogTransition
 
 class UpdateVariableNode(BaseNode):
@@ -27,9 +27,6 @@ class UpdateVariableNode(BaseNode):
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
-
-        if logger is None:
-            logger = fetch_default_logger()
 
         transition = DialogTransition(new_state_id=self.next_node_id)
 

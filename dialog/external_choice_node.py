@@ -2,7 +2,7 @@
 
 from django.utils import timezone
 
-from .base_node import BaseNode, fetch_default_logger
+from .base_node import BaseNode
 from .dialog_machine import DialogTransition
 
 class ExternalChoiceNode(BaseNode):
@@ -64,9 +64,6 @@ class ExternalChoiceNode(BaseNode):
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
         if extras is None:
             extras = {}
-
-        if logger is None:
-            logger = fetch_default_logger()
 
         if ('is_external' in extras) and extras['is_external']:
             if response is not None: # pylint: disable=no-else-return

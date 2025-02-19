@@ -1,6 +1,6 @@
 # pylint: disable=line-too-long, super-with-arguments
 
-from .base_node import BaseNode, fetch_default_logger, DialogError
+from .base_node import BaseNode, DialogError
 from .dialog_machine import DialogTransition
 
 class IfNode(BaseNode):
@@ -36,9 +36,6 @@ class IfNode(BaseNode):
     def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-branches, too-many-arguments
         if extras is None:
             extras = {}
-
-        if logger is None:
-            logger = fetch_default_logger()
 
         is_all_true = True
 

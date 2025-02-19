@@ -4,6 +4,7 @@ import bz2
 import datetime
 import gc
 import io
+import logging
 import os
 import sys
 import tempfile
@@ -11,6 +12,8 @@ import tempfile
 from django.conf import settings
 from django.core import management
 from django.utils.text import slugify
+
+logger = logging.getLogger(__name__)
 
 def incremental_backup(parameters):
     to_transmit = []
@@ -39,7 +42,7 @@ def incremental_backup(parameters):
         pass
 
     for app in dumpdata_apps:
-        print('[django_dialog_engine] Backing up ' + app + '...')
+        logger.info('[django_dialog_engine] Backing up %s...', app)
         sys.stdout.flush()
 
         buf = io.StringIO()
