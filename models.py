@@ -38,6 +38,8 @@ from django.utils.html import mark_safe
 
 from .dialog import DialogMachine, ExternalChoiceNode, DialogError
 
+logger = logging.getLogger(__name__)
+
 FINISH_REASONS = (
     ('not_finished', 'Not Finished'),
     ('dialog_concluded', 'Dialog Concluded'),
@@ -454,11 +456,6 @@ class Dialog(models.Model):
 
             if last_transition is not None:
                 dialog_machine.advance_to(last_transition.state_id)
-
-            try:
-                logger = settings.FETCH_LOGGER()
-            except AttributeError:
-                pass
 
             transition = dialog_machine.evaluate(response=response, last_transition=last_transition, extras=extras, logger=logger)
 
