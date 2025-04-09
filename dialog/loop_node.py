@@ -38,6 +38,17 @@ class LoopNode(BaseNode):
 
         return transition
 
+    def next_nodes(self):
+        nodes = []
+
+        if self.loop_node_id is not None:
+            nodes.append((self.loop_node_id, 'Continue Loop'))
+
+        if self.next_node_id is not None:
+            nodes.append((self.next_node_id, 'Exit loop'))
+
+        return nodes
+
     def actions(self):
         return[]
 
