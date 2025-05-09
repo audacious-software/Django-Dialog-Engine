@@ -9,7 +9,7 @@ bandit==1.7.10; python_version == '3.8'
 bandit==1.8.3; python_version >= '3.9'
 Django==1.11.29; python_version < '3.0'
 Django==3.2.25; python_version >= '3.0' and python_version <= '3.7'
-Django==4.2.20; python_version >= '3.8'
+Django==4.2.21; python_version >= '3.8'
 django-prettyjson==0.4.1
 future==1.0.0
 jsonpath-ng==1.6.0; python_version < '3.0'
