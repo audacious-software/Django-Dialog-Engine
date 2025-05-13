@@ -132,26 +132,28 @@ class RandomBranchNode(BaseNode):
         transition.metadata['reason'] = 'random-branch'
         transition.metadata['weights'] = weight_metadata
 
+        transition_extras = dict(extras)
+
         if self.without_replacement and extras is not None:
             key = '__%s_prior_choices' % self.node_id
 
-            if extras.get(key, None) is None:
-                extras[key] = []
+            if transition_extras.get(key, None) is None:
+                transition_extras[key] = []
 
-            if isinstance(extras[key], str):
-                extras[key] = json.loads(extras[key])
+            if isinstance(transition_extras[key], str):
+                transition_extras[key] = json.loads(transition_extras[key])
 
             if len(choices) > 1:
-                extras[key].append(chosen)
+                transition_extras[key].append(chosen)
             else:
-                extras[key] = []
+                transition_extras[key] = []
 
-            transition.metadata['prior_choices'] = extras[key]
+            transition.metadata['prior_choices'] = transition_extras[key]
 
             transition.metadata['exit_actions'] = [{
                 'type': 'store-value',
                 'key': key,
-                'value': json.dumps(extras[key])
+                'value': json.dumps(transition_extras[key])
             }]
 
         return transition
