@@ -64,9 +64,6 @@ class LoopNode(BaseNode):
     def node_definition(self):
         node_def = super().node_definition() # pylint: disable=missing-super-argument
 
-        if 'next_id' in node_def:
-            del node_def['next_id']
-
         if self.loop_node_id is not None:
             node_def['loop_id'] = self.loop_node_id
 
