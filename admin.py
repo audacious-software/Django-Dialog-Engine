@@ -8,6 +8,8 @@ from prettyjson import PrettyJSONWidget
 from django import forms
 
 from django.contrib import admin
+from django.contrib.admin.decorators import action
+
 from django.contrib.admin.helpers import ActionForm
 from django.db.models import Q
 
@@ -16,10 +18,17 @@ try:
 except ImportError:
     from django.contrib.postgres.fields import JSONField
 
+from docker_utils.admin import PortableModelAdmin
+
+try:
+    from docker_utils.admin import PortableModelAdmin as ModelAdmin
+except ImportError:
+    from django.contrib.admin import ModelAdmin as ModelAdmin
+
 from .models import Dialog, DialogScript, DialogScriptVersion, DialogStateTransition
 
 @admin.register(Dialog)
-class DialogAdmin(admin.ModelAdmin):
+class DialogAdmin(ModelAdmin):
     list_display = ('key', 'script', 'current_state_id', 'started', 'finished', 'finish_reason',)
     search_fields = ('key', 'dialog_snapshot', 'finish_reason', 'script__name',)
     list_filter = ('started', 'finished', 'finish_reason')
@@ -27,6 +36,12 @@ class DialogAdmin(admin.ModelAdmin):
     formfield_overrides = {
         JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'})}
     }
+
+    actions = list(ModelAdmin.actions) + ['test_action']
+
+    @action(description='Test selected items')
+    def test_action(self, request, queryset):
+        pass
 
 def clone_dialog_scripts(modeladmin, request, queryset): # pylint: disable=unused-argument
     for item in queryset:
