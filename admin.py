@@ -118,7 +118,7 @@ class DialogScriptVersionAdmin(admin.ModelAdmin):
         JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'})}
     }
 
-    def restore_dialog_script_version(self, request, queryset): # pylint: disable=unused-argument
+    def restore_dialog_script_version(self, request, queryset): # pylint: disable=unused-argument, no-self-use
         for item in queryset:
             item.restore_version()
 

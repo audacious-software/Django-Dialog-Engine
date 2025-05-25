@@ -10,19 +10,19 @@ from django.core import serializers
 
 from .models import DialogScript, DialogScriptVersion, Dialog, DialogStateTransition
 
-def import_objects(file_type, file):
+def import_objects(file_type, import_file):
     if file_type == 'django_dialog_engine.dialogscript':
-        return import_dialog_scripts(file)
+        return import_dialog_scripts(import_file)
 
     if file_type == 'django_dialog_engine.dialog':
-        return import_dialogs(file)
+        return import_dialogs(import_file)
 
     return None
 
-def import_dialogs(file): # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+def import_dialogs(import_file): # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     user_messages = []
 
-    with file.open() as file_stream:
+    with import_file.open() as file_stream:
         dialogs_json = json.load(file_stream)
 
         dialogs_imported = 0
@@ -80,10 +80,10 @@ def import_dialogs(file): # pylint: disable=too-many-locals,too-many-branches,to
 
     return user_messages
 
-def import_dialog_scripts(file): # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+def import_dialog_scripts(import_file): # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     user_messages = []
 
-    with file.open() as file_stream:
+    with import_file.open() as file_stream:
         scripts_json = json.load(file_stream)
 
         scripts_updated = 0
