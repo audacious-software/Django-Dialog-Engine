@@ -8,7 +8,6 @@ from prettyjson import PrettyJSONWidget
 from django import forms
 
 from django.contrib import admin
-from django.contrib.admin.decorators import action
 
 from django.contrib.admin.helpers import ActionForm
 from django.db.models import Q
@@ -35,9 +34,10 @@ class DialogAdmin(ModelAdmin):
         JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'})}
     }
 
-    @action(description='Export selected dialogs')
     def export_objects(self, request, queryset):
         return self.portable_model_export_items(request, queryset)
+
+    export_objects.short_description = 'Export selected dialogs'
 
     actions = [
         'export_objects',
@@ -108,12 +108,6 @@ class DialogScriptLabelForm(ActionForm):
         widget=DialogScriptLabelWidget()
     )
 
-def restore_dialog_script_version(modeladmin, request, queryset): # pylint: disable=unused-argument
-    for item in queryset:
-        item.restore_version()
-
-restore_dialog_script_version.short_description = "Restore selected versions"
-
 @admin.register(DialogScriptVersion)
 class DialogScriptVersionAdmin(admin.ModelAdmin):
     list_display = ('dialog_script', 'name', 'identifier', 'updated')
@@ -123,6 +117,12 @@ class DialogScriptVersionAdmin(admin.ModelAdmin):
     formfield_overrides = {
         JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'})}
     }
+
+    def restore_dialog_script_version(self, request, queryset): # pylint: disable=unused-argument
+        for item in queryset:
+            item.restore_version()
+
+    restore_dialog_script_version.short_description = "Restore selected versions"
 
     actions = [restore_dialog_script_version]
 
@@ -160,16 +160,15 @@ class DialogScriptAdmin(ModelAdmin):
         DialogScriptVersionInline,
     ]
 
-    @action(description='Clone selected dialog scripts')
-    def clone_dialog_scripts(self, request, queryset): # pylint: disable=unused-argument
+    def clone_dialog_scripts(self, request, queryset): # pylint: disable=unused-argument,no-self-use
         for item in queryset:
             item.pk = None
             item.name = item.name + ' (Copy)'
             item.identifier = item.identifier + '-copy'
             item.save()
 
+    clone_dialog_scripts.short_description = 'Clone selected dialog scripts'
 
-    @action(description='Add label to selected dialog scripts')
     def add_label(self, request, queryset):
         label = request.POST.get('label_field', None)
 
@@ -184,7 +183,8 @@ class DialogScriptAdmin(ModelAdmin):
         else:
             self.message_user(request, 'Please provide a label.')
 
-    @action(description='Clear label from selected dialog scripts')
+    add_label.short_description = 'Add label to selected dialog scripts'
+
     def clear_label(self, request, queryset):
         label = request.POST.get('label_field', None)
 
@@ -199,7 +199,8 @@ class DialogScriptAdmin(ModelAdmin):
         else:
             self.message_user(request, 'Please provide a label.')
 
-    @action(description='Archive selected dialog scripts')
+    clear_label.short_description = 'Clear label from selected dialog scripts'
+
     def archive_script(self, request, queryset):
         count = 0
 
@@ -209,21 +210,26 @@ class DialogScriptAdmin(ModelAdmin):
 
         self.message_user(request, '%d dialog script(s) archived.' % count)
 
-    @action(description='Make selected dialog scripts embeddable')
+    archive_script.short_description = 'Archive selected dialog scripts'
+
     def make_embeddable(self, request, queryset):
         count = queryset.update(embeddable=True)
 
         self.message_user(request, '%d dialog script(s) marked embeddable.' % count)
 
-    @action(description='Make selected dialog scripts unembeddable')
+    make_embeddable.short_description = 'Make selected dialog scripts embeddable'
+
     def remove_embeddable(self, request, queryset):
         count = queryset.update(embeddable=True)
 
         self.message_user(request, '%d dialog script(s) are no longer embeddable.' % count)
 
-    @action(description='Export selected dialog scripts')
+    remove_embeddable.short_description = 'Make selected dialog scripts unembeddable'
+
     def export_objects(self, request, queryset):
         return self.portable_model_export_items(request, queryset)
+
+    export_objects.short_description = 'Export selected dialog scripts'
 
     actions = [
         'export_objects',
