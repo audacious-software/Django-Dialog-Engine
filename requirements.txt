@@ -9,7 +9,7 @@ bandit==1.7.10; python_version == '3.8'
 bandit==1.8.3; python_version >= '3.9'
 Django==1.11.29; python_version < '3.0'
 Django==3.2.25; python_version >= '3.0' and python_version <= '3.7'
-Django==4.2.22; python_version >= '3.8'
+Django==4.2.23; python_version >= '3.8'
 django-prettyjson==0.4.1
 future==1.0.0
 iso8601==0.1.16; python_version < '3.0'
@@ -24,7 +24,8 @@ numpy==1.19.5; python_version == '3.6'
 numpy==1.21.6; python_version == '3.7'
 numpy==1.24.3; python_version == '3.8'
 numpy==2.0.1; python_version == '3.9'
-numpy==2.3.0; python_version >= '3.10'
+numpy==2.2.6; python_version == '3.10'
+numpy==2.3.0; python_version >= '3.11'
 objectpath==0.6.1
 psycopg2-binary==2.8.6; python_version < '3.0'
 psycopg2-binary==2.9.8; python_version >= '3.0' and python_version < '3.7'
