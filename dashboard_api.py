@@ -1,8 +1,8 @@
 from django.urls import reverse
 
 def dashboard_pages():
-	return [{
+    return [{
         'title': 'Dialog Scripts',
         'icon': 'speaker_notes',
-		'url': reverse('dashboard_dialog_scripts'),
+        'url': reverse('dashboard_dialog_scripts'),
     }]

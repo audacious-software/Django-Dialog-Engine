@@ -30,7 +30,7 @@ class PromptNode(BaseNode):
 
         return None
 
-    def __init__(self, node_id, next_node_id, prompt, timeout=300, timeout_node_id=None, invalid_response_node_id=None, valid_patterns=None): # pylint: disable=too-many-arguments
+    def __init__(self, node_id, next_node_id, prompt, timeout=300, timeout_node_id=None, invalid_response_node_id=None, valid_patterns=None): # pylint: disable=too-many-arguments, too-many-positional-arguments
         super(PromptNode, self).__init__(node_id, next_node_id)
 
         self.prompt = prompt

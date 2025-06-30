@@ -7,7 +7,7 @@ if sys.version_info[0] > 2:
 else:
     from django.conf.urls import url
 
-from .views import dashboard_dialog_scripts
+from .views import dashboard_dialog_scripts # pylint: disable=wrong-import-position
 
 urlpatterns = [
     url(r'^dashboard/dialog/scripts$', dashboard_dialog_scripts, name='dashboard_dialog_scripts'),

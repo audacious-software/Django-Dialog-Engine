@@ -24,7 +24,7 @@ class PauseNode(BaseNode):
     def node_type(self):
         return 'pause'
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-positional-arguments
         if extras is None:
             extras = {}
 

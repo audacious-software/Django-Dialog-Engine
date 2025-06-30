@@ -58,7 +58,7 @@ class TimeElapsedInterruptNode(BaseNode):
 
         return False
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-positional-arguments
         if extras is None:
             extras = {}
 

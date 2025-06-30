@@ -135,7 +135,7 @@ class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attr
     def node_type(self):
         return 'http-response'
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches, too-many-locals, too-many-statements
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-arguments, too-many-return-statements, too-many-branches, too-many-locals, too-many-statements, too-many-positional-arguments
         if extras is None:
             extras = {}
 

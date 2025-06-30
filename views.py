@@ -1,5 +1,5 @@
+# pylint: disable=no-member
 # -*- coding: utf-8 -*-
-# from __future__ import unicode_literals
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render

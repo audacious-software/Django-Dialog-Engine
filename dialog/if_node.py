@@ -33,7 +33,7 @@ class IfNode(BaseNode):
 
         return node_def
 
-    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-branches, too-many-arguments
+    def evaluate(self, dialog, response=None, last_transition=None, extras=None, logger=None): # pylint: disable=too-many-branches, too-many-arguments, too-many-positional-arguments
         if extras is None:
             extras = {}
 
