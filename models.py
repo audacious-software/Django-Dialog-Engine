@@ -215,7 +215,6 @@ class DialogScript(models.Model):
         label_suffix = '|%s' % label
 
         for line in self.labels.splitlines():
-
             if line.endswith(label_suffix):
                 return int(line.replace(label_suffix, ''))
 
