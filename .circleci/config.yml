@@ -7,6 +7,7 @@ orbs:
 workflows:
   build:
     jobs:
+      - build-312
       - build-310
       - build-39
       - build-38
@@ -15,10 +16,71 @@ workflows:
       - build-27
 
 jobs:
+  build-312:
+    docker:
+      - image: cimg/python:3.12
+      - image: cimg/postgres:14.18-postgis
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_DB: circle_test
+          POSTGRES_PASSWORD: ""
+    steps:
+      - node/install
+      - checkout
+      - restore_cache:
+          key: venv-312-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      - run:
+          name: Build and validate
+          command: |
+            python -m venv --copies /home/circleci/venv
+            . /home/circleci/venv/bin/activate
+            pip install -U pip
+            pip install -U wheel
+            pip install -r requirements.txt --progress-bar off
+            cd ..
+            mv project django_dialog_engine
+            mkdir django
+            cd django
+            django-admin startproject dde
+            mv ../django_dialog_engine dde
+            cd dde
+            cp django_dialog_engine/circle_settings.py dde/settings.py
+            cp django_dialog_engine/circle_urls.py dde/urls.py
+            python manage.py migrate
+            python manage.py test
+            cp django_dialog_engine/.pylintrc .
+            pylint django_dialog_engine
+            bandit -r .
+      - run:
+          name: Test dialog content
+          command: |
+            . /home/circleci/venv/bin/activate
+            cd ..
+            cd django/dde
+            npm install -g -s botium-cli botium-core
+            export BOTIUM_DDE_DIALOG_SCRIPT_PATH="./django_dialog_engine/botium/dialog_scripts/hello_world.json"
+            export BOTIUM_DDE_DIALOG_USER_ID="circle-ci:tester"
+            export BOTIUM_DDE_DIALOG_ID="circle-ci-test-hello-world"
+            botium-cli run -c django_dialog_engine/botium/botium.json -C django_dialog_engine/botium/convos/hello_world/
+            export BOTIUM_DDE_DIALOG_SCRIPT_PATH="./django_dialog_engine/botium/dialog_scripts/prompt_test.json"
+            botium-cli run -c django_dialog_engine/botium/botium.json -C django_dialog_engine/botium/convos/prompt_test/
+      - save_cache:
+          key: venv-312-{{ .Branch }}-{{ checksum "/home/circleci/django/dde/django_dialog_engine/requirements.txt" }}
+          paths:
+            - "/home/circleci/venv"
+      - store_test_results:
+          path: test-results/
+      - store_artifacts:
+          path: test-reports/
+          destination: python_app
+
   build-310:
     docker:
       - image: cimg/python:3.10
-      - image: cimg/postgres:12.18-postgis
+      - image: cimg/postgres:14.18-postgis
         auth:
           username: mydockerhub-user
           password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
@@ -75,7 +137,6 @@ jobs:
       - store_artifacts:
           path: test-reports/
           destination: python_app
-
   build-39:
     docker:
       - image: cimg/python:3.9
