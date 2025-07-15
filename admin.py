@@ -1,4 +1,4 @@
-# pylint: disable=no-member,line-too-long,ungrouped-imports
+# pylint: disable=no-member,line-too-long,ungrouped-imports,super-with-arguments
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
