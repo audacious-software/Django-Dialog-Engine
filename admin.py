@@ -2,15 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-
 from prettyjson import PrettyJSONWidget
 
 from django import forms
-
 from django.contrib import admin
-
 from django.contrib.admin.helpers import ActionForm
 from django.db.models import Q
+from django.utils.safestring import mark_safe
 
 try:
     from django.db.models import JSONField
@@ -24,6 +22,10 @@ except ImportError:
 
 from .models import Dialog, DialogScript, DialogScriptVersion, DialogStateTransition
 
+class PrettyJSONWidgetFixed(PrettyJSONWidget):
+    def render(self, name, value, attrs=None, **kwargs):
+        return mark_safe(super().render(name, value, attrs=None, **kwargs))
+
 @admin.register(Dialog)
 class DialogAdmin(ModelAdmin):
     list_display = ('key', 'script', 'current_state_id', 'started', 'finished', 'finish_reason',)
@@ -31,7 +33,7 @@ class DialogAdmin(ModelAdmin):
     list_filter = ('started', 'finished', 'finish_reason')
 
     formfield_overrides = {
-        JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'})}
+        JSONField: {'widget': PrettyJSONWidgetFixed(attrs={'initial': 'parsed'})}
     }
 
     def export_objects(self, request, queryset):
@@ -115,7 +117,7 @@ class DialogScriptVersionAdmin(admin.ModelAdmin):
     search_fields = ('name', 'identifier', 'definition', 'labels',)
 
     formfield_overrides = {
-        JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'})}
+        JSONField: {'widget': PrettyJSONWidgetFixed(attrs={'initial': 'parsed'})}
     }
 
     def restore_dialog_script_version(self, request, queryset): # pylint: disable=unused-argument, no-self-use
@@ -153,7 +155,7 @@ class DialogScriptAdmin(ModelAdmin):
     list_filter = (DialogScriptArchiveFilter, 'created', 'embeddable', DialogScriptLabelFilter,)
 
     formfield_overrides = {
-        JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'})}
+        JSONField: {'widget': PrettyJSONWidgetFixed(attrs={'initial': 'parsed'})}
     }
 
     inlines = [
@@ -249,5 +251,5 @@ class DialogStateTransitionAdmin(admin.ModelAdmin):
     list_filter = ('when',)
 
     formfield_overrides = {
-        JSONField: {'widget': PrettyJSONWidget(attrs={'initial': 'parsed'})}
+        JSONField: {'widget': PrettyJSONWidgetFixed(attrs={'initial': 'parsed'})}
     }
