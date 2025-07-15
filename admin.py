@@ -24,7 +24,7 @@ from .models import Dialog, DialogScript, DialogScriptVersion, DialogStateTransi
 
 class PrettyJSONWidgetFixed(PrettyJSONWidget):
     def render(self, name, value, attrs=None, **kwargs):
-        return mark_safe(super().render(name, value, attrs=None, **kwargs)) # nosec
+        return mark_safe(super(PrettyJSONWidgetFixed, self).render(name, value, attrs=None, **kwargs)) # nosec
 
 @admin.register(Dialog)
 class DialogAdmin(ModelAdmin):
