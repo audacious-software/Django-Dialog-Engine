@@ -38,8 +38,6 @@ from django.utils.html import mark_safe
 
 from .dialog import DialogMachine, ExternalChoiceNode, DialogError
 
-logger = logging.getLogger(__name__) # pylint: disable=invalid-name
-
 FINISH_REASONS = (
     ('not_finished', 'Not Finished'),
     ('dialog_concluded', 'Dialog Concluded'),
@@ -431,9 +429,12 @@ class Dialog(models.Model):
     def is_active(self):
         return self.finished is None
 
-    def process(self, response=None, extras=None): # pylint: disable=too-many-statements, too-many-branches
+    def process(self, response=None, extras=None, logger=None): # pylint: disable=too-many-statements, too-many-branches
         if extras is None:
             extras = {}
+
+        if logger is None:
+            logger = logging.getLogger()
 
         for key in self.metadata.keys():
             if (key in extras) is False:

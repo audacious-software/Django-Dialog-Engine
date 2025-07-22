@@ -4,6 +4,7 @@ from builtins import object # pylint: disable=redefined-builtin
 
 import copy
 import importlib
+import logging
 import json
 
 from django.conf import settings
@@ -92,6 +93,9 @@ class DialogMachine(object):
         if self.current_node is None:
             return None
 
+        if logger is None:
+            logger = logging.getLogger()
+
         for key, node in self.all_nodes.items(): # pylint: disable=unused-variable
             if response is not None and isinstance(node, (InterruptNode,)):
                 pattern_matched = node.matches(response)
@@ -115,7 +119,9 @@ class DialogMachine(object):
 
                     return transition
 
+        logger.debug('Evaluating current node: %s -- Response: %s -- Extras: %s -- Logger: %s', self.current_node, response, len(extras), logger)
         transition = self.current_node.evaluate(self, response, last_transition, extras, logger)
+        logger.debug('Evaluation complete for %s -- %s', self.current_node, transition)
 
         if transition is not None:
             if transition.new_state_id in self.all_nodes:
