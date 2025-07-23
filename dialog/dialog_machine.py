@@ -137,6 +137,8 @@ class DialogMachine(object):
                 else:
                     transition.metadata['actions'] = None
 
+        logger.debug('Returning transition: %s from %s', transition, self.current_node)
+
         return transition
 
     def prior_transitions(self, new_state_id, prior_state_id, reason=None):

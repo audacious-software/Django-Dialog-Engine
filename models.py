@@ -497,15 +497,19 @@ class Dialog(models.Model):
 
                 actions.extend(new_actions)
 
+            logger.debug('Returning actions to handler: %s', actions)
+
             return actions
         except DialogError:
-            print('Encountered an issue in dialog %d:' % self.pk)
-            traceback.print_exc()
-            print('Force-finishing %d.' % self.pk)
+            logger.error('Encountered an issue in dialog %d:', self.pk)
+            logger.error(traceback.print_exc())
+            logger.error('Force-finishing %d.', self.pk)
 
             self.metadata['dialog_error'] = traceback.format_exc()
 
             self.finish('dialog_error')
+
+            logger.debug('Returning empty actions to handler: %s', [])
 
             return []
 
