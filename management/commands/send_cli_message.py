@@ -1,8 +1,6 @@
 # pylint: disable=no-member, line-too-long
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
 from builtins import str # pylint: disable=redefined-builtin
 
 import importlib
@@ -11,7 +9,7 @@ import json
 import logging
 import os
 
-from future import standard_library
+from six import _print as print
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -19,8 +17,6 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from ...models import Dialog
-
-standard_library.install_aliases()
 
 def process(dialog, message, extras=None, skip_extensions=False):
     if extras is None:

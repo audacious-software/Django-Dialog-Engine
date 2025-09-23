@@ -1,8 +1,6 @@
 # pylint: disable=no-member, line-too-long
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
 from builtins import str # pylint: disable=redefined-builtin
 from builtins import input # pylint: disable=redefined-builtin
 
@@ -11,15 +9,13 @@ import json
 import signal
 import time
 
-from future import standard_library
+from six import print_ as print
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from ...dialog.base_node import DialogError
 from ...models import DialogScript, Dialog
-
-standard_library.install_aliases()
 
 class Command(BaseCommand):
     help = 'Creates a new dialog from a provided JSON definition and executes it via the command line interface'

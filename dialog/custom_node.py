@@ -1,7 +1,5 @@
 # pylint: disable=line-too-long, super-with-arguments, eval-used
 
-from __future__ import print_function
-
 import importlib
 import logging
 import traceback

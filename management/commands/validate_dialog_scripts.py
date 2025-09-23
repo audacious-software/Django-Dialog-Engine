@@ -1,7 +1,7 @@
 # pylint: disable=no-member, line-too-long, len-as-condition
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+from six import _print as print
 
 from django.core.management.base import BaseCommand
 
