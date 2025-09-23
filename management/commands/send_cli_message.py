@@ -9,7 +9,7 @@ import json
 import logging
 import os
 
-from six import _print as print
+import six
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -46,7 +46,7 @@ def process(dialog, message, extras=None, skip_extensions=False):
 
         for action in actions:
             if action['type'] == 'echo':
-                print(action['message'])
+                six._print(action['message'])
 
 
 class Command(BaseCommand):

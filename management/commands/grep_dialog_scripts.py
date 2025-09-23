@@ -4,8 +4,7 @@
 import json
 
 import objectpath
-
-from six import _print as print
+import six
 
 from django.core.management.base import BaseCommand
 
@@ -28,7 +27,7 @@ class Command(BaseCommand):
             matches = list(tree.execute(query))
 
             if matches:
-                print('DialogScript: %s' % script.identifier)
+                six._print('DialogScript: %s' % script.identifier)
 
                 for found in matches:
-                    print('  %s' % json.dumps(found, indent=2))
+                    six._print('  %s' % json.dumps(found, indent=2))

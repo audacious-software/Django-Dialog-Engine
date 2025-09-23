@@ -1,7 +1,7 @@
 # pylint: disable=no-member, line-too-long, len-as-condition
 # -*- coding: utf-8 -*-
 
-from six import _print as print
+import six
 
 from django.core.management.base import BaseCommand
 
@@ -26,11 +26,11 @@ class Command(BaseCommand):
 
                 if len(issues) > 0:
                     if len(issues) == 1:
-                        print('%s: %d issue...' % (script.name, len(issues)))
+                        six._print('%s: %d issue...' % (script.name, len(issues)))
                     else:
-                        print('%s: %d issues...' % (script.name, len(issues)))
+                        six._print('%s: %d issues...' % (script.name, len(issues)))
 
                     for issue in issues:
-                        print('  [%s] %s' % (issue[0], issue[1]))
+                        six._print('  [%s] %s' % (issue[0], issue[1]))
 
-        print('Total issues: %s' % issue_count)
+        six._print('Total issues: %s' % issue_count)
