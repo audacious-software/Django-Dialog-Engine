@@ -9,7 +9,7 @@ import json
 import signal
 import time
 
-from six import print_ as print
+import six
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -50,17 +50,17 @@ class Command(BaseCommand):
             signal.signal(signal.SIGALRM, handler)
 
             while dialog.is_active():
-                # print('    ACTIONS: ' + str(actions))
+                # six.print_('    ACTIONS: ' + str(actions))
 
                 input_str = None
 
                 for action in actions:
-                    # print('    ACTION: ' + json.dumps(action))
+                    # six.print_('    ACTION: ' + json.dumps(action))
 
                     if action['type'] == 'wait-for-input':
                         signal.alarm(action['timeout'])
 
-                        print('ENTER INPUT:')
+                        six.print_('ENTER INPUT:')
 
                         try:
                             input_str = input()
@@ -69,15 +69,15 @@ class Command(BaseCommand):
 
                         signal.alarm(0)
                     elif action['type'] == 'echo':
-                        print('ECHO: ' + action['message'])
+                        six.print_('ECHO: ' + action['message'])
                     elif action['type'] == 'pause':
-                        print('PAUSE: ' + str(action['duration']))
+                        six.print_('PAUSE: ' + str(action['duration']))
                         time.sleep(action['duration'])
                     elif action['type'] == 'store-value':
-                        print('STORE: ' + str(action['key']) + ' = ' + str(action['value']))
+                        six.print_('STORE: ' + str(action['key']) + ' = ' + str(action['value']))
                     else:
                         raise DialogError('Unknown action: %s' % json.dumps(action))
 
-                print('    PROCESS: %s' % input_str)
+                six.print_('    PROCESS: %s' % input_str)
 
                 actions = dialog.process(input_str)
