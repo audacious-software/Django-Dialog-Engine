@@ -26,11 +26,11 @@ class Command(BaseCommand):
 
                 if len(issues) > 0:
                     if len(issues) == 1:
-                        six._print('%s: %d issue...' % (script.name, len(issues)))
+                        six.print_('%s: %d issue...' % (script.name, len(issues)))
                     else:
-                        six._print('%s: %d issues...' % (script.name, len(issues)))
+                        six.print_('%s: %d issues...' % (script.name, len(issues)))
 
                     for issue in issues:
-                        six._print('  [%s] %s' % (issue[0], issue[1]))
+                        six.print_('  [%s] %s' % (issue[0], issue[1]))
 
-        six._print('Total issues: %s' % issue_count)
+        six.print_('Total issues: %s' % issue_count)

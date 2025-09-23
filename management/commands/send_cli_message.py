@@ -46,7 +46,7 @@ def process(dialog, message, extras=None, skip_extensions=False):
 
         for action in actions:
             if action['type'] == 'echo':
-                six._print(action['message'])
+                six.print_(action['message'])
 
 
 class Command(BaseCommand):

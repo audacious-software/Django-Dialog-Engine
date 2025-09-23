@@ -27,7 +27,7 @@ class Command(BaseCommand):
             matches = list(tree.execute(query))
 
             if matches:
-                six._print('DialogScript: %s' % script.identifier)
+                six.print_('DialogScript: %s' % script.identifier)
 
                 for found in matches:
-                    six._print('  %s' % json.dumps(found, indent=2))
+                    six.print_('  %s' % json.dumps(found, indent=2))
