@@ -1,9 +1,6 @@
 # pylint: disable=no-member, line-too-long
 # -*- coding: utf-8 -*-
 
-from builtins import str # pylint: disable=redefined-builtin
-from builtins import input # pylint: disable=redefined-builtin
-
 import io
 import json
 import signal
@@ -63,7 +60,7 @@ class Command(BaseCommand):
                         six.print_('ENTER INPUT:')
 
                         try:
-                            input_str = input()
+                            input_str = six.input()
                         except: # pylint: disable=bare-except
                             break
 

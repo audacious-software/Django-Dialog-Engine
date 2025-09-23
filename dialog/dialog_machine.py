@@ -1,7 +1,5 @@
 # pylint: disable=line-too-long, useless-object-inheritance, super-with-arguments
 
-from builtins import object # pylint: disable=redefined-builtin
-
 import copy
 import importlib
 import logging
@@ -13,7 +11,7 @@ from .base_node import BaseNode, MissingNextDialogNodeError, DialogError, Dialog
 
 MISSING_NEXT_NODE_KEY = 'django-dialog-engine-missing-next-node-end'
 
-class DialogMachine(object):
+class DialogMachine:
     def __init__(self, definition, metadata=None, django_object=None):
         from .begin_node import BeginNode # pylint: disable=import-outside-toplevel
         from .end_node import EndNode # pylint: disable=import-outside-toplevel
