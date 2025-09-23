@@ -6,7 +6,7 @@ import importlib
 import logging
 import traceback
 
-from past.builtins import basestring # pylint: disable=redefined-builtin
+from six import string_types
 
 from django.conf import settings
 from django.utils.encoding import smart_str
@@ -99,7 +99,7 @@ class CustomNode(BaseNode):
 
                 if result['actions'] is not None:
                     for action in result['actions']:
-                        if isinstance(action['type'], basestring) is False:
+                        if isinstance(action['type'], string_types) is False:
                             raise DialogError('%s is not a valid action. Verify that the "type" key is present and is a string.' % action)
 
                     transition.metadata['exit_actions'] = result['actions']
@@ -130,7 +130,7 @@ class CustomNode(BaseNode):
             eval(code, {}, {'definition': self.definition, 'actions': custom_actions}) #nosec B307
 
             for action in custom_actions:
-                if isinstance(action['type'], basestring) is False:
+                if isinstance(action['type'], string_types) is False:
                     raise DialogError('%s is not a valid action. Verify that the "type" key is present and is a string.' % action)
 
             return custom_actions
