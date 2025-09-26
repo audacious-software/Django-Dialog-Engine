@@ -480,6 +480,8 @@ class Dialog(models.Model):
 
                     new_transition.save()
 
+                    logger.info('[process] Transitioning from %s to %s', new_transition.prior_state_id, transition.new_state_id)
+
                     new_actions = new_transition.actions()
 
                     if new_actions is None:
@@ -510,6 +512,8 @@ class Dialog(models.Model):
             return []
 
     def advance_to(self, state_id):
+        logger = logging.getLogger()
+
         last_transition = self.transitions.order_by('-when').first()
 
         new_transition = DialogStateTransition(dialog=self)
@@ -521,6 +525,8 @@ class Dialog(models.Model):
             new_transition.metadata = last_transition.metadata
 
         new_transition.save()
+
+        logger.info('[advance_to] Transitioning from %s to %s', new_transition.prior_state_id, new_transition.state_id)
 
         dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata)
 
