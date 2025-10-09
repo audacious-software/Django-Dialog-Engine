@@ -104,6 +104,9 @@ def apply_template(obj, context_dict):
 
 @python_2_unicode_compatible
 class DialogScript(models.Model):
+    class Meta:
+        ordering = ['name',]
+
     name = models.CharField(max_length=1024, default='New Dialog Script')
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(null=True, blank=True)
