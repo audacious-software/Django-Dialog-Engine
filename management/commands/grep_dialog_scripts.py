@@ -1,11 +1,10 @@
 # pylint: disable=no-member, line-too-long
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
 import json
 
 import objectpath
+import six
 
 from django.core.management.base import BaseCommand
 
@@ -28,7 +27,7 @@ class Command(BaseCommand):
             matches = list(tree.execute(query))
 
             if matches:
-                print('DialogScript: %s' % script.identifier)
+                six.print_('DialogScript: %s' % script.identifier)
 
                 for found in matches:
-                    print('  %s' % json.dumps(found, indent=2))
+                    six.print_('  %s' % json.dumps(found, indent=2))

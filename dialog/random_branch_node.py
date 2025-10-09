@@ -1,11 +1,10 @@
 # pylint: disable=line-too-long, super-with-arguments
 
-from builtins import str # pylint: disable=redefined-builtin
-
 import copy
 import json
 
 import numpy
+import six
 
 from django.template import Template, Context
 
@@ -61,7 +60,7 @@ class RandomBranchNode(BaseNode):
         for action in self.random_actions:
             raw_weight = action['weight']
 
-            value_template = Template(str(raw_weight))
+            value_template = Template('%s' % raw_weight)
 
             context_metadata = copy.deepcopy(dialog.metadata)
 
@@ -96,7 +95,7 @@ class RandomBranchNode(BaseNode):
             if (key in extras) is False:
                 extras[key] = []
 
-            if isinstance(extras[key], str):
+            if isinstance(extras[key], six.string_types):
                 extras[key] = json.loads(extras[key])
 
             for prior_choice in extras[key]:
@@ -140,7 +139,7 @@ class RandomBranchNode(BaseNode):
             if transition_extras.get(key, None) is None:
                 transition_extras[key] = []
 
-            if isinstance(transition_extras[key], str):
+            if isinstance(transition_extras[key], six.string_types):
                 transition_extras[key] = json.loads(transition_extras[key])
 
             if len(choices) > 1:
@@ -165,7 +164,7 @@ class RandomBranchNode(BaseNode):
         nodes = []
 
         for action in self.random_actions:
-            nodes.append((action['action'], 'Weight: ' + str(action['weight'])))
+            nodes.append((action['action'], 'Weight: %s' % action['weight']))
 
         return nodes
 

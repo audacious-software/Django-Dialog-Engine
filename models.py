@@ -1,10 +1,6 @@
 # pylint: disable=line-too-long, no-member, too-many-instance-attributes
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals
-
-from builtins import str # pylint: disable=redefined-builtin
-
 import importlib
 import logging
 import inspect
@@ -14,7 +10,7 @@ import traceback
 
 import gettext
 
-from six import python_2_unicode_compatible
+from six import python_2_unicode_compatible, string_types
 
 from django.conf import settings
 from django.core.cache import cache
@@ -59,7 +55,7 @@ def get_requested_user():
     return None
 
 def apply_template(obj, context_dict):
-    if isinstance(obj, str):
+    if isinstance(obj, string_types):
         prefix = ''
 
         try:
@@ -235,11 +231,11 @@ class DialogScript(models.Model):
 
     def get_absolute_url(self):
         try:
-            return reverse('builder_dialog', args=[str(self.pk)])
+            return reverse('builder_dialog', args=['%s' % self.pk])
         except NoReverseMatch:
             pass
 
-        return '/admin/django_dialog_engine/dialogscript/' + str(self.pk) + '/change'
+        return '/admin/django_dialog_engine/dialogscript/%s/change' % self.pk
 
     def size(self):
         if self.definition is None:
@@ -342,7 +338,7 @@ class DialogScriptVersion(models.Model):
         return '%s - %s (%s)' % (self.dialog_script, self.created, self.creator)
 
     def get_absolute_url(self):
-        return '/admin/django_dialog_engine/dialogscriptversion/' + str(self.pk) + '/change'
+        return '/admin/django_dialog_engine/dialogscriptversion/%s/change' % self.pk
 
     def size(self):
         if self.definition is None:
@@ -402,7 +398,7 @@ class Dialog(models.Model):
         if self.script is not None:
             return self.script.name
 
-        return 'dialog-' + str(self.pk)
+        return 'dialog-%s' % self.pk
 
     def is_valid(self):
         if self.script is None:
@@ -487,6 +483,8 @@ class Dialog(models.Model):
 
                     new_transition.save()
 
+                    logger.info('[process] Transitioning from %s to %s', new_transition.prior_state_id, transition.new_state_id)
+
                     new_actions = new_transition.actions()
 
                     if new_actions is None:
@@ -517,6 +515,8 @@ class Dialog(models.Model):
             return []
 
     def advance_to(self, state_id):
+        logger = logging.getLogger()
+
         last_transition = self.transitions.order_by('-when').first()
 
         new_transition = DialogStateTransition(dialog=self)
@@ -528,6 +528,8 @@ class Dialog(models.Model):
             new_transition.metadata = last_transition.metadata
 
         new_transition.save()
+
+        logger.info('[advance_to] Transitioning from %s to %s', new_transition.prior_state_id, new_transition.state_id)
 
         dialog_machine = DialogMachine(self.dialog_snapshot, self.metadata)
 
@@ -720,7 +722,7 @@ class DialogStateTransition(models.Model):
     metadata = JSONField(default=dict)
 
     def __str__(self):
-        return str(self.prior_state_id) + ' -> ' + str(self.state_id)
+        return '%s -> %s' % (self.prior_state_id, self.state_id)
 
     def actions(self):
         if 'actions' in self.metadata:
