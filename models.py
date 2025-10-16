@@ -100,7 +100,7 @@ def apply_template(obj, context_dict):
 
 @python_2_unicode_compatible
 class DialogScript(models.Model):
-    class Meta:
+    class Meta: # pylint: disable=too-few-public-methods
         ordering = ['name',]
 
     name = models.CharField(max_length=1024, default='New Dialog Script')
