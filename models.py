@@ -12,8 +12,10 @@ import gettext
 
 from six import python_2_unicode_compatible, string_types
 
+
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models import Q
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
@@ -98,10 +100,24 @@ def apply_template(obj, context_dict):
 
     return obj
 
+class DialogScriptManager(models.Manager):
+    def fetch_by_label(self, label):
+        query = Q(labels=label)
+
+        query = query | Q(labels__icontains='\n%s\n' % label)
+
+        query = query | Q(labels__istartswith='%s\n' % label)
+
+        query = query | Q(labels__iendswith='\n%s' % label)
+
+        return self.filter(query)
+
 @python_2_unicode_compatible
 class DialogScript(models.Model):
     class Meta: # pylint: disable=too-few-public-methods,old-style-class,no-init
         ordering = ['name',]
+
+    objects = DialogScriptManager()
 
     name = models.CharField(max_length=1024, default='New Dialog Script')
     created = models.DateTimeField(auto_now_add=True, null=True)
