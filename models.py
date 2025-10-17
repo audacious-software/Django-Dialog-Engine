@@ -100,15 +100,15 @@ def apply_template(obj, context_dict):
 
     return obj
 
-class DialogScriptManager(models.Manager):
+class DialogScriptManager(models.Manager): # pylint: disable=too-few-public-methods
     def fetch_by_label(self, label):
         query = Q(labels=label)
 
-        query = query | Q(labels__icontains='\n%s\n' % label)
+        query = query | Q(labels__icontains='\n%s\n' % label) # pylint: disable=unsupported-binary-operation
 
-        query = query | Q(labels__istartswith='%s\n' % label)
+        query = query | Q(labels__istartswith='%s\n' % label) # pylint: disable=unsupported-binary-operation
 
-        query = query | Q(labels__iendswith='\n%s' % label)
+        query = query | Q(labels__iendswith='\n%s' % label) # pylint: disable=unsupported-binary-operation
 
         return self.filter(query)
 
