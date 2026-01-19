@@ -41,7 +41,7 @@ MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
 )
 
-ROOT_URLCONF = 'django_dialog_engine.circle_urls'
+ROOT_URLCONF = 'dde.urls'
 
 TEMPLATES = [
     {
@@ -66,7 +66,7 @@ DATABASES = {
         'ENGINE':   'django.db.backends.postgresql',
         'NAME':     'circle_test',
         'USER':     'root',
-        'PASSWORD': '',
+        'PASSWORD': '', # nosec
         'HOST':     'localhost',
         'PORT':     '',
     }

@@ -47,8 +47,8 @@ jobs:
             django-admin startproject dde
             mv ../django_dialog_engine dde
             cd dde
-            cp django_dialog_engine/circle_settings.py dde/settings.py
-            cp django_dialog_engine/circle_urls.py dde/urls.py
+            cp django_dialog_engine/.circleci/circle_settings.py dde/settings.py
+            cp django_dialog_engine/.circleci/circle_urls.py dde/urls.py
             python manage.py migrate
             python manage.py test
             cp django_dialog_engine/.pylintrc .
@@ -108,8 +108,8 @@ jobs:
             django-admin startproject dde
             mv ../django_dialog_engine dde
             cd dde
-            cp django_dialog_engine/circle_settings.py dde/settings.py
-            cp django_dialog_engine/circle_urls.py dde/urls.py
+            cp django_dialog_engine/.circleci/circle_settings.py dde/settings.py
+            cp django_dialog_engine/.circleci/circle_urls.py dde/urls.py
             python manage.py migrate
             python manage.py test
             cp django_dialog_engine/.pylintrc .
@@ -168,8 +168,8 @@ jobs:
             django-admin startproject dde
             mv ../django_dialog_engine dde
             cd dde
-            cp django_dialog_engine/circle_settings.py dde/settings.py
-            cp django_dialog_engine/circle_urls.py dde/urls.py
+            cp django_dialog_engine/.circleci/circle_settings.py dde/settings.py
+            cp django_dialog_engine/.circleci/circle_urls.py dde/urls.py
             python manage.py migrate
             python manage.py test
             cp django_dialog_engine/.pylintrc .
@@ -229,8 +229,8 @@ jobs:
             django-admin startproject dde
             mv ../django_dialog_engine dde
             cd dde
-            cp django_dialog_engine/circle_settings.py dde/settings.py
-            cp django_dialog_engine/circle_urls.py dde/urls.py
+            cp django_dialog_engine/.circleci/circle_settings.py dde/settings.py
+            cp django_dialog_engine/.circleci/circle_urls.py dde/urls.py
             python manage.py migrate
             python manage.py test
             cp django_dialog_engine/.pylintrc .
@@ -291,8 +291,8 @@ jobs:
             django-admin.py startproject dde
             mv ../django_dialog_engine dde
             cd dde
-            cp django_dialog_engine/circle_settings.py dde/settings.py
-            cp django_dialog_engine/circle_urls.py dde/urls.py
+            cp django_dialog_engine/.circleci/circle_settings.py dde/settings.py
+            cp django_dialog_engine/.circleci/circle_urls.py dde/urls.py
             python manage.py migrate
             python manage.py test
             cp django_dialog_engine/.pylintrc .
@@ -352,8 +352,8 @@ jobs:
             django-admin.py startproject dde
             mv ../django_dialog_engine dde
             cd dde
-            cp django_dialog_engine/circle_settings.py dde/settings.py
-            cp django_dialog_engine/circle_urls.py dde/urls.py
+            cp django_dialog_engine/.circleci/circle_settings.py dde/settings.py
+            cp django_dialog_engine/.circleci/circle_urls.py dde/urls.py
             python manage.py migrate
             python manage.py test
             cp django_dialog_engine/.pylintrc .
@@ -413,8 +413,8 @@ jobs:
             django-admin.py startproject dde
             mv ../django_dialog_engine dde
             cd dde
-            cp django_dialog_engine/circle_settings.py dde/settings.py
-            cp django_dialog_engine/circle_urls.py dde/urls.py
+            cp django_dialog_engine/.circleci/circle_settings.py dde/settings.py
+            cp django_dialog_engine/.circleci/circle_urls.py dde/urls.py
             python manage.py migrate
             python manage.py test
             cp django_dialog_engine/.pylintrc .
