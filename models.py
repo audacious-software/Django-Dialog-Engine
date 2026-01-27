@@ -131,6 +131,14 @@ class DialogScript(models.Model):
 
     definition = JSONField(null=True, blank=True)
 
+    def updated(self):
+        latest = self.versions.order_by('-updated').first()
+
+        if latest is not None:
+            return latest.updated
+
+        return None
+
     def is_valid(self):
         if isinstance(self.definition, list) is False:
             return False
