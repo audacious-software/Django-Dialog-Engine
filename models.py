@@ -131,7 +131,7 @@ class DialogScript(models.Model):
 
     definition = JSONField(null=True, blank=True)
 
-    def updated(self):
+    def fetch_updated(self):
         latest = self.versions.order_by('-updated').first()
 
         if latest is not None:

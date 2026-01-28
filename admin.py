@@ -149,7 +149,7 @@ class DialogScriptVersionInline(admin.TabularInline):
 
 @admin.register(DialogScript)
 class DialogScriptAdmin(ModelAdmin):
-    list_display = ('name', 'identifier', 'size', 'created', 'updated', 'admin_labels',)
+    list_display = ('name', 'identifier', 'size', 'created', 'fetch_updated', 'admin_labels',)
     search_fields = ('name', 'identifier', 'definition', 'labels',)
     list_filter = (DialogScriptArchiveFilter, 'created', 'embeddable', DialogScriptLabelFilter,)
 
