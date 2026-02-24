@@ -15,6 +15,7 @@ from six import python_2_unicode_compatible, string_types
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models import Q
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
@@ -444,6 +445,7 @@ class Dialog(models.Model):
     def is_active(self):
         return self.finished is None
 
+    @transaction.atomic
     def process(self, response=None, extras=None, logger=None): # pylint: disable=too-many-statements, too-many-branches
         if extras is None:
             extras = {}
@@ -530,6 +532,7 @@ class Dialog(models.Model):
 
             return []
 
+    @transaction.atomic
     def advance_to(self, state_id):
         logger = logging.getLogger()
 
