@@ -23,8 +23,12 @@ class Command(BaseCommand):
         scripts = DialogScript.objects.all()
 
         for script in scripts:
-            # matches = jsonpath.find(query, script.definition)
-            matches = jsonpath.findall(query, script.definition)
+            matches = []
+
+            try:
+                matches = jsonpath.findall(query, script.definition)
+            except AttributeError:
+                matches = jsonpath.jsonpath(script.definition, query)
 
             if matches:
                 six.print_('DialogScript: %s' % script.identifier)
