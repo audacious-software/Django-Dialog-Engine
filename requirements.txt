@@ -16,7 +16,6 @@ django-prettyjson==0.4.1
 iso8601==0.1.16; python_version < '3.0'
 iso8601==1.1.0; python_version >= '3.0' and python_version < '3.7'
 iso8601==2.1.0; python_version >= '3.7'
-jmespath==1.1.0
 jsonpath-ext==0.0.5
 lxml==5.0.1; python_version < '3.0'
 lxml==5.4.0; python_version > '3.0' and python_version <= '3.7'
