@@ -6,7 +6,7 @@ import traceback
 import lxml # nosec
 import requests
 
-from jsonpath_ng.ext import parse as jsonpath_ng_parse
+import jsonpath_ext as jsonpath
 
 from .base_node import BaseNode
 from .dialog_machine import DialogTransition
@@ -181,9 +181,7 @@ class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attr
 
                 elif self.pattern_matcher == 'jsonpath':
                     for action in self.pattern_actions:
-                        parser = jsonpath_ng_parse(action['pattern'])
-
-                        matches = list(parser.find(response.json()))
+                        matches = jsonpath.find(action['pattern'], response.json())
 
                         if len(matches) > 0: # pylint: disable=len-as-condition
                             matched_action = action
