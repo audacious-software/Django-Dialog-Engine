@@ -3,7 +3,9 @@
 
 import json
 
-import jsonpath_ext as jsonpath
+# import jsonpath_ext as jsonpath
+
+import jsonpath
 
 import six
 
@@ -15,18 +17,19 @@ class Command(BaseCommand):
     help = 'Queries DialogScript objects for nodes matching provided JSONPatH query.'
 
     def add_arguments(self, parser):
-        parser.add_argument('query', type=str)
+        pass
 
     def handle(self, *args, **options): # pylint: disable=too-many-branches
-        query = options['query'].replace('\\!', '!')
+        query = six.moves.input('Enter your JSONPath query: ')
 
         scripts = DialogScript.objects.all()
 
         for script in scripts:
-            matches = jsonpath.find(query, script.definition)
+            # matches = jsonpath.find(query, script.definition)
+            matches = jsonpath.findall(query, script.definition)
 
             if matches:
                 six.print_('DialogScript: %s' % script.identifier)
 
                 for found in matches:
-                    six.print_('  %s' % json.dumps(found.value, indent=2))
+                    six.print_('  %s' % json.dumps(found, indent=2))

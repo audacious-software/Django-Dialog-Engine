@@ -6,7 +6,7 @@ import traceback
 import lxml # nosec
 import requests
 
-import jsonpath_ext as jsonpath
+import jsonpath
 
 from .base_node import BaseNode
 from .dialog_machine import DialogTransition
