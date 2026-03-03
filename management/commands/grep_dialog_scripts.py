@@ -3,8 +3,6 @@
 
 import json
 
-# import jsonpath_ext as jsonpath
-
 import jsonpath
 
 import six
