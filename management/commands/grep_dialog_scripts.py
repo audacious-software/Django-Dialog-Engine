@@ -1,4 +1,4 @@
-# pylint: disable=no-member, line-too-long
+# pylint: disable=no-member, line-too-long, no-member
 # -*- coding: utf-8 -*-
 
 import json
