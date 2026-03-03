@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long, super-with-arguments
+# pylint: disable=line-too-long, super-with-arguments, no-member
 
 import re
 import traceback
