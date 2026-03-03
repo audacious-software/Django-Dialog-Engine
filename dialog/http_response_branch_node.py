@@ -181,7 +181,12 @@ class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attr
 
                 elif self.pattern_matcher == 'jsonpath':
                     for action in self.pattern_actions:
-                        matches = jsonpath.findall(action['pattern'], response.json())
+                        matches = []
+
+                        try:
+                            matches = jsonpath.findall(action['pattern'], response.json())
+                        except AttributeError:
+                            matches = jsonpath.jsonpath(response.json(), action['pattern'])
 
                         if len(matches) > 0: # pylint: disable=len-as-condition
                             matched_action = action
