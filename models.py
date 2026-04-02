@@ -36,6 +36,7 @@ from django.utils import timezone
 from django.utils.html import mark_safe
 
 from .dialog import DialogMachine, ExternalChoiceNode, DialogError
+from .utils import urls_from_dict
 
 FINISH_REASONS = (
     ('not_finished', 'Not Finished'),
@@ -131,6 +132,18 @@ class DialogScript(models.Model):
     labels = models.TextField(max_length=(1024 * 1024), null=True, blank=True)
 
     definition = JSONField(null=True, blank=True)
+
+    def fetch_urls(self):
+        urls = []
+
+        for node in self.definition:
+            node_urls = urls_from_dict(node)
+
+            for url in node_urls:
+                if (url in urls) is False:
+                    urls.append(url)
+
+        return urls
 
     def fetch_updated(self):
         latest = self.versions.order_by('-updated').first()
