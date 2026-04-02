@@ -1,4 +1,4 @@
-# pylint: disable=no-member, line-too-long, len-as-condition
+# pylint: disable=no-member, line-too-long, superfluous-parens
 # -*- coding: utf-8 -*-
 
 import time
