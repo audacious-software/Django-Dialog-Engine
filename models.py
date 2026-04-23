@@ -395,6 +395,11 @@ class DialogScriptVersion(models.Model):
         self.dialog_script.save()
 
 @receiver(pre_save, sender=DialogScript)
+def normalize_newlines(sender, instance, **kwargs): # pylint: disable=unused-argument
+    if instance.labels is not None and '\r' in instance.labels:
+        instance.labels = '\n'.join(instance.labels.splitlines())
+
+@receiver(pre_save, sender=DialogScript)
 def create_version_update_updated(sender, instance, **kwargs): # pylint: disable=unused-argument
     instance.updated = timezone.now()
 
