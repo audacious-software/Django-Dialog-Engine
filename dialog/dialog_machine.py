@@ -104,7 +104,11 @@ class DialogMachine: # pylint: disable=old-style-class
                     transition.metadata['reason'] = 'interrupt'
                     transition.metadata['pattern'] = 'pattern_matched'
                     transition.metadata['response'] = response
-                    transition.metadata['actions'] = []
+                    transition.metadata['actions'] = [{
+                        'type': 'store-value',
+                        'key': 'keyword_interrupt_pattern_match',
+                        'value': pattern_matched
+                    }]
 
                     return transition
             elif isinstance(node, (TimeElapsedInterruptNode,)):
