@@ -558,11 +558,14 @@ class Dialog(models.Model):
 
             return []
 
+    def latest_transition(self):
+        return self.transitions.order_by('-when').first()
+
     @transaction.atomic
     def advance_to(self, state_id):
         logger = logging.getLogger()
 
-        last_transition = self.transitions.order_by('-when').first()
+        last_transition = self.latest_transition()
 
         new_transition = DialogStateTransition(dialog=self)
         new_transition.when = timezone.now()
