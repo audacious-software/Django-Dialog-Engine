@@ -395,6 +395,11 @@ class DialogScriptVersion(models.Model):
         self.dialog_script.save()
 
 @receiver(pre_save, sender=DialogScript)
+def normalize_newlines(sender, instance, **kwargs): # pylint: disable=unused-argument
+    if instance.labels is not None and '\r' in instance.labels:
+        instance.labels = '\n'.join(instance.labels.splitlines())
+
+@receiver(pre_save, sender=DialogScript)
 def create_version_update_updated(sender, instance, **kwargs): # pylint: disable=unused-argument
     instance.updated = timezone.now()
 
@@ -553,11 +558,14 @@ class Dialog(models.Model):
 
             return []
 
+    def latest_transition(self):
+        return self.transitions.order_by('-when').first()
+
     @transaction.atomic
     def advance_to(self, state_id):
         logger = logging.getLogger()
 
-        last_transition = self.transitions.order_by('-when').first()
+        last_transition = self.latest_transition()
 
         new_transition = DialogStateTransition(dialog=self)
         new_transition.when = timezone.now()

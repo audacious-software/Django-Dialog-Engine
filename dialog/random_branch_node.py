@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long, super-with-arguments
+# pylint: disable=line-too-long, super-with-arguments, no-member
 
 import copy
 import json
@@ -96,7 +96,10 @@ class RandomBranchNode(BaseNode):
                 extras[key] = []
 
             if isinstance(extras[key], six.string_types):
-                extras[key] = json.loads(extras[key])
+                try:
+                    extras[key] = json.loads(extras[key])
+                except json.decoder.JSONDecodeError:
+                    pass
 
             for prior_choice in extras[key]:
                 try:
