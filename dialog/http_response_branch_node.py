@@ -171,7 +171,7 @@ class HttpResponseBranchNode(BaseNode): # pylint: disable=too-many-instance-attr
                 else:
                     response = requests.get(self.url, headers=headers, data=parameters, timeout=300)
 
-            if response.status_code >= 200 and response.status_code < 300: # Valid response
+            if 200 <= response.status_code < 300: # Valid response
                 matched_action = None
 
                 if self.pattern_matcher == 're':
